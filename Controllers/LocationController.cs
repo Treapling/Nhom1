@@ -20,25 +20,39 @@ namespace Nhom1.Controllers
         }
 
         [HttpGet("check")]
-        public async Task<IActionResult> CheckLocation([FromQuery] double lat, [FromQuery] double lng)
-        {
-            // 1. Kéo toàn bộ danh sách POI từ Database SQLite
-            var allPOIs = await _context.POIs.ToListAsync();
+public async Task<IActionResult> CheckLocation([FromQuery] double lat, [FromQuery] double lng)
+{
+    // Kéo toàn bộ danh sách POI từ Database SQLite KÈM THEO danh sách Audio của từng điểm
+    var allPOIs = await _context.POIs
+        .Include(p => p.Audios) // Dùng LINQ để nạp dữ liệu bảng Audio liên kết
+        .ToListAsync();
 
-            // 2. Đưa vào thuật toán Haversine kiểm tra xem có điểm nào thỏa mãn bán kính không
-            var triggeredPoi = _geofenceService.CheckTriggeredPOI(lat, lng, allPOIs);
+    // Đưa vào thuật toán Haversine kiểm tra xem có điểm nào thỏa mãn bán kính không
+    var triggeredPoi = _geofenceService.CheckTriggeredPOI(lat, lng, allPOIs);
 
-            if (triggeredPoi != null)
-            {
-                return Ok(new {
-                    triggered = true,
-                    poi = triggeredPoi,
-                    // Tạm thời fix cứng link nhạc, sau này làm CRUD Audio sẽ lấy từ DB.
-                    audioUrl = "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" 
-                });
-            }
+    if (triggeredPoi != null)
+    {
+        // Lấy ra link nhạc thực tế từ Database thay vì fix cứng.
+        // Mặc định lấy file đầu tiên (hoặc file tiếng Việt "vi")
+        var audioTrack = triggeredPoi.Audios?.FirstOrDefault();
+        string audioPath = audioTrack != null ? audioTrack.FilePath : "default_audio.mp3";
 
-            return Ok(new { triggered = false });
-        }
+        return Ok(new {
+            triggered = true,
+            poi = new {
+                id = triggeredPoi.Id,
+                name = triggeredPoi.Name,
+                description = triggeredPoi.Description,
+                lat = triggeredPoi.Lat,
+                lng = triggeredPoi.Lng,
+                radius = triggeredPoi.Radius,
+                priority = triggeredPoi.Priority
+            },
+            audioUrl = audioPath // Đã đổi thành link động lấy từ database
+        });
+    }
+
+    return Ok(new { triggered = false });
+}
     }
 }

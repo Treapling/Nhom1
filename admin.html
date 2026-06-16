@@ -28,7 +28,7 @@
   <body>
     <nav class="navbar navbar-expand-lg mb-4">
       <div class="container-fluid">
-        <a class="navbar-brand" href="#">⚙️ Hệ thống Quản trị POI</a>
+        <a class="navbar-brand" href="#">⚙️ Hệ thống Quản trị POI & Audio</a>
       </div>
     </nav>
 
@@ -100,6 +100,31 @@
               </button>
             </form>
           </div>
+
+          <div class="card p-3 mb-4">
+            <h5>Thêm File Âm Thanh (Audio)</h5>
+            <hr />
+            <form id="audioForm">
+              <div class="mb-2">
+                <label class="form-label">Mã địa điểm (POI ID)</label>
+                <input type="number" class="form-control" id="audioPoiId" required placeholder="Ví dụ: 1" />
+              </div>
+              <div class="mb-2">
+                <label class="form-label">Đường dẫn file (FilePath)</label>
+                <input type="text" class="form-control" id="audioFilePath" required placeholder="https://example.com/audio.mp3" />
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Ngôn ngữ</label>
+                <select class="form-select" id="audioLanguage">
+                  <option value="vi">Tiếng Việt (vi)</option>
+                  <option value="en">Tiếng Anh (en)</option>
+                </select>
+              </div>
+              <button type="submit" class="btn btn-success w-100">
+                Lưu Âm Thanh
+              </button>
+            </form>
+          </div>
         </div>
 
         <div class="col-md-8">
@@ -113,6 +138,7 @@
                   <th>Tên địa điểm</th>
                   <th>Tọa độ (Lat, Lng)</th>
                   <th>Bán kính</th>
+                  <th>Danh sách Audio</th>
                   <th>Hành động</th>
                 </tr>
               </thead>
@@ -125,8 +151,9 @@
 
     <script>
       const API_URL = "http://localhost:5555/api/POI";
+      const AUDIO_API_URL = "http://localhost:5555/api/Audio";
 
-      // Hàm load danh sách POI từ Database
+      // Hàm load danh sách POI từ Database (Cập nhật hiển thị thêm list audio đi kèm)
       function loadPOIs() {
         fetch(API_URL)
           .then((res) => res.json())
@@ -134,14 +161,30 @@
             const tbody = document.getElementById("poiTableBody");
             tbody.innerHTML = ""; // Xóa dữ liệu cũ
             data.forEach((poi) => {
+              
+              // Tạo chuỗi HTML để liệt kê danh sách file Audio của POI này
+              let audioListHtml = "";
+              if (poi.audios && poi.audios.length > 0) {
+                audioListHtml = poi.audios.map(a => 
+                  `<div class="small mb-1">
+                    <span class="badge bg-secondary">${a.language.toUpperCase()}</span> 
+                    <a href="${a.filePath}" target="_blank" class="text-truncate d-inline-block" style="max-width: 150px;">Link</a>
+                    <button class="btn btn-sm text-danger p-0 ms-1" style="font-size: 11px;" onclick="deleteAudio(${a.id})">[Xóa]</button>
+                   </div>`
+                ).join("");
+              } else {
+                audioListHtml = '<span class="text-muted small">Chưa có audio</span>';
+              }
+
               tbody.innerHTML += `
                         <tr>
                             <td>${poi.id}</td>
                             <td><strong>${poi.name}</strong></td>
                             <td>${poi.lat}, ${poi.lng}</td>
                             <td>${poi.radius}m</td>
+                            <td>${audioListHtml}</td>
                             <td>
-                                <button class="btn btn-sm btn-danger" onclick="deletePOI(${poi.id})">Xóa</button>
+                                <button class="btn btn-sm btn-danger" onclick="deletePOI(${poi.id})">Xóa POI</button>
                             </td>
                         </tr>
                     `;
@@ -170,19 +213,58 @@
             body: JSON.stringify(newPOI),
           }).then((res) => {
             if (res.ok) {
-              alert("Thêm thành công!");
+              alert("Thêm địa điểm thành công!");
               document.getElementById("poiForm").reset(); // Xóa trắng form
               loadPOIs(); // Cập nhật lại bảng
             }
           });
         });
 
+      // Hàm Thêm mới Audio gán cho POI
+      document
+        .getElementById("audioForm")
+        .addEventListener("submit", function (e) {
+          e.preventDefault();
+
+          const newAudio = {
+            POI_Id: parseInt(document.getElementById("audioPoiId").value),
+            FilePath: document.getElementById("audioFilePath").value,
+            Language: document.getElementById("audioLanguage").value
+          };
+
+          fetch(AUDIO_API_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(newAudio)
+          }).then((res) => {
+            if (res.ok) {
+              alert("Thêm file âm thanh thành công!");
+              document.getElementById("audioForm").reset();
+              loadPOIs(); // Load lại bảng để xem audio mới gán
+            } else {
+              res.text().then(text => alert("Lỗi: " + text));
+            }
+          }).catch(err => console.error("Lỗi gửi dữ liệu:", err));
+        });
+
       // Hàm Xóa POI
       function deletePOI(id) {
-        if (confirm("Bạn có chắc chắn muốn xóa điểm này?")) {
+        if (confirm("Bạn có chắc chắn muốn xóa điểm này? (Tất cả audio đính kèm sẽ bị xóa tự động)")) {
           fetch(`${API_URL}/${id}`, { method: "DELETE" }).then((res) => {
             if (res.ok) {
               loadPOIs(); // Cập nhật lại bảng
+            }
+          });
+        }
+      }
+
+      // Hàm Xóa lẻ từng Audio
+      function deleteAudio(audioId) {
+        if (confirm("Bạn có chắc chắn muốn xóa file âm thanh này không?")) {
+          fetch(`${AUDIO_API_URL}/${audioId}`, { method: "DELETE" }).then((res) => {
+            if (res.ok) {
+              alert("Xóa file âm thanh thành công!");
+              loadPOIs(); // Cập nhật lại giao diện
             }
           });
         }
