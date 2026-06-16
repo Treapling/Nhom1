@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>Hệ thống Thuyết minh Du lịch</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    />
+    <style>
+      body,
+      html {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        background-color: #f8f9fa;
+      }
+      .app-container {
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+        max-width: 500px;
+        margin: 0 auto;
+        background-color: white;
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+      }
+      .header {
+        background-color: #0d6efd;
+        color: white;
+        padding: 15px;
+        text-align: center;
+        font-weight: bold;
+        font-size: 1.2rem;
+      }
+      #map-container {
+        flex-grow: 1;
+        width: 100%;
+      }
+      .control-panel {
+        padding: 20px;
+        background-color: white;
+        border-top: 1px solid #dee2e6;
+        text-align: center;
+      }
+      .info-box {
+        background-color: #e9ecef;
+        padding: 10px;
+        border-radius: 8px;
+        margin-bottom: 15px;
+      }
+      .status-text {
+        font-size: 0.9rem;
+        color: #6c757d;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app-container">
+      <div class="header">Tour Guide App</div>
+
+      <div id="map-container"></div>
+
+      <div class="control-panel">
+        <div class="info-box">
+          <h5 id="poi-name" class="mb-1">Đang tìm vị trí...</h5>
+          <div id="poi-distance" class="status-text">
+            Vui lòng bật GPS để bắt đầu
+          </div>
+        </div>
+
+        <button
+          id="btn-start"
+          class="btn btn-primary w-100 py-2 fw-bold"
+          onclick="startTour()"
+        >
+          🚀 BẮT ĐẦU CHUYẾN ĐI
+        </button>
+        <button
+          id="btn-scan"
+          class="btn btn-outline-secondary w-100 py-2 mt-2 fw-bold"
+        >
+          📷 Quét mã QR
+        </button>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+      var map = L.map("map-container").setView([10.76, 106.6822], 16);
+
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        attribution: "© OpenStreetMap contributors",
+      }).addTo(map);
+
+      var userMarker = L.circleMarker([10.76, 106.6822], {
+        color: "red",
+        fillColor: "#f03",
+        fillOpacity: 0.5,
+        radius: 8,
+      }).addTo(map);
+
+      let isTracking = false;
+      let currentAudio = null;
+      let lastPlayedPoiId = null; // Biến lưu trạng thái Cooldown
+
+      function startTour() {
+        if (!navigator.geolocation) {
+          alert("Trình duyệt không hỗ trợ GPS!");
+          return;
+        }
+
+        document
+          .getElementById("btn-start")
+          .classList.replace("btn-primary", "btn-success");
+        document.getElementById("btn-start").innerText =
+          "Đang theo dõi vị trí...";
+        isTracking = true;
+
+        navigator.geolocation.watchPosition(
+          function (position) {
+            const lat = position.coords.latitude;
+            const lng = position.coords.longitude;
+
+            userMarker.setLatLng([lat, lng]);
+            map.panTo([lat, lng]);
+            document.getElementById("poi-distance").innerText =
+              `Tọa độ: ${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+
+            // Gọi API backend để kiểm tra Geofence
+            checkGeofenceAPI(lat, lng);
+          },
+          function (error) {
+            console.error("Lỗi GPS:", error);
+          },
+          { enableHighAccuracy: true, maximumAge: 0 },
+        );
+      }
+
+      function checkGeofenceAPI(lat, lng) {
+        // Bỏ comment dòng dưới khi chạy project C# thực tế (thay thế URL cổng Localhost của bạn)
+        // const apiUrl = `https://localhost:7001/api/location/check?lat=${lat}&lng=${lng}`;
+
+        // Để test giao diện tạm thời, sử dụng Mock Logic trực tiếp nếu chưa bật server C#
+        const distanceToSGU = calculateHaversineDistance(
+          lat,
+          lng,
+          10.76,
+          106.6822,
+        );
+        if (distanceToSGU <= 150) {
+          triggerAudio(
+            1,
+            "Trường Đại học Sài Gòn (SGU)",
+            "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
+          );
+        }
+      }
+
+      // Narration Engine: Xử lý chống spam
+      function triggerAudio(poiId, poiName, audioUrl) {
+        // Logic Cooldown: Đã phát rồi thì không phát lại trừ khi reset
+        if (lastPlayedPoiId === poiId) return;
+
+        // Nếu đang phát dở một audio khác, dừng nó lại
+        if (currentAudio && !currentAudio.paused) {
+          currentAudio.pause();
+        }
+
+        document.getElementById("poi-name").innerText =
+          `📍 Đang đến: ${poiName}`;
+
+        currentAudio = new Audio(audioUrl);
+        currentAudio
+          .play()
+          .catch((e) =>
+            console.error(
+              "Trình duyệt chặn Autoplay. Người dùng cần tương tác trước.",
+              e,
+            ),
+          );
+
+        lastPlayedPoiId = poiId;
+
+        // Reset cooldown sau 5 phút (300000 ms) để có thể nghe lại khi quay lại điểm này
+        setTimeout(() => {
+          if (lastPlayedPoiId === poiId) lastPlayedPoiId = null;
+        }, 300000);
+      }
+
+      // Hàm tính khoảng cách tạm thời dùng ở Client khi Server chưa bật
+      function calculateHaversineDistance(lat1, lon1, lat2, lon2) {
+        const R = 6371000;
+        const dLat = ((lat2 - lat1) * Math.PI) / 180;
+        const dLon = ((lon2 - lon1) * Math.PI) / 180;
+        const a =
+          Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+          Math.cos((lat1 * Math.PI) / 180) *
+            Math.cos((lat2 * Math.PI) / 180) *
+            Math.sin(dLon / 2) *
+            Math.sin(dLon / 2);
+        return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
+      }
+    </script>
+  </body>
+</html>
