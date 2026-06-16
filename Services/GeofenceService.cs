@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using TourGuideProject.Models;
+using Nhom1.Models;
 
-namespace TourGuideProject.Services
+namespace Nhom1.Services
 {
     public class GeofenceService
     {

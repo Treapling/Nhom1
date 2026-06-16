@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CMS Quản trị - Tour Guide App</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        background-color: #f4f6f9;
+      }
+      .navbar {
+        background-color: #343a40;
+      }
+      .navbar-brand {
+        color: white !important;
+        font-weight: bold;
+      }
+      .card {
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        border: none;
+      }
+    </style>
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-lg mb-4">
+      <div class="container-fluid">
+        <a class="navbar-brand" href="#">⚙️ Hệ thống Quản trị POI</a>
+      </div>
+    </nav>
+
+    <div class="container">
+      <div class="row">
+        <div class="col-md-4">
+          <div class="card p-3 mb-4">
+            <h5>Thêm Điểm tham quan mới</h5>
+            <hr />
+            <form id="poiForm">
+              <div class="mb-2">
+                <label class="form-label">Tên địa điểm</label>
+                <input type="text" class="form-control" id="name" required />
+              </div>
+              <div class="mb-2">
+                <label class="form-label">Mô tả ngắn</label>
+                <textarea
+                  class="form-control"
+                  id="description"
+                  rows="2"
+                ></textarea>
+              </div>
+              <div class="row">
+                <div class="col-6 mb-2">
+                  <label class="form-label">Vĩ độ (Lat)</label>
+                  <input
+                    type="number"
+                    step="any"
+                    class="form-control"
+                    id="lat"
+                    required
+                  />
+                </div>
+                <div class="col-6 mb-2">
+                  <label class="form-label">Kinh độ (Lng)</label>
+                  <input
+                    type="number"
+                    step="any"
+                    class="form-control"
+                    id="lng"
+                    required
+                  />
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-6 mb-3">
+                  <label class="form-label">Bán kính (m)</label>
+                  <input
+                    type="number"
+                    class="form-control"
+                    id="radius"
+                    value="100"
+                    required
+                  />
+                </div>
+                <div class="col-6 mb-3">
+                  <label class="form-label">Mức ưu tiên</label>
+                  <input
+                    type="number"
+                    class="form-control"
+                    id="priority"
+                    value="1"
+                    required
+                  />
+                </div>
+              </div>
+              <button type="submit" class="btn btn-primary w-100">
+                Lưu dữ liệu
+              </button>
+            </form>
+          </div>
+        </div>
+
+        <div class="col-md-8">
+          <div class="card p-3">
+            <h5>Danh sách Điểm tham quan</h5>
+            <hr />
+            <table class="table table-hover">
+              <thead class="table-dark">
+                <tr>
+                  <th>ID</th>
+                  <th>Tên địa điểm</th>
+                  <th>Tọa độ (Lat, Lng)</th>
+                  <th>Bán kính</th>
+                  <th>Hành động</th>
+                </tr>
+              </thead>
+              <tbody id="poiTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const API_URL = "http://localhost:5555/api/POI";
+
+      // Hàm load danh sách POI từ Database
+      function loadPOIs() {
+        fetch(API_URL)
+          .then((res) => res.json())
+          .then((data) => {
+            const tbody = document.getElementById("poiTableBody");
+            tbody.innerHTML = ""; // Xóa dữ liệu cũ
+            data.forEach((poi) => {
+              tbody.innerHTML += `
+                        <tr>
+                            <td>${poi.id}</td>
+                            <td><strong>${poi.name}</strong></td>
+                            <td>${poi.lat}, ${poi.lng}</td>
+                            <td>${poi.radius}m</td>
+                            <td>
+                                <button class="btn btn-sm btn-danger" onclick="deletePOI(${poi.id})">Xóa</button>
+                            </td>
+                        </tr>
+                    `;
+            });
+          });
+      }
+
+      // Hàm Thêm mới POI
+      document
+        .getElementById("poiForm")
+        .addEventListener("submit", function (e) {
+          e.preventDefault(); // Ngăn trình duyệt load lại trang
+
+          const newPOI = {
+            name: document.getElementById("name").value,
+            description: document.getElementById("description").value,
+            lat: parseFloat(document.getElementById("lat").value),
+            lng: parseFloat(document.getElementById("lng").value),
+            radius: parseFloat(document.getElementById("radius").value),
+            priority: parseInt(document.getElementById("priority").value),
+          };
+
+          fetch(API_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(newPOI),
+          }).then((res) => {
+            if (res.ok) {
+              alert("Thêm thành công!");
+              document.getElementById("poiForm").reset(); // Xóa trắng form
+              loadPOIs(); // Cập nhật lại bảng
+            }
+          });
+        });
+
+      // Hàm Xóa POI
+      function deletePOI(id) {
+        if (confirm("Bạn có chắc chắn muốn xóa điểm này?")) {
+          fetch(`${API_URL}/${id}`, { method: "DELETE" }).then((res) => {
+            if (res.ok) {
+              loadPOIs(); // Cập nhật lại bảng
+            }
+          });
+        }
+      }
+
+      // Chạy hàm load dữ liệu ngay khi mở trang
+      loadPOIs();
+    </script>
+  </body>
+</html>

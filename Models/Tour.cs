@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
-namespace TourGuideProject.Models
+namespace Nhom1.Models
 {
     public class Tour
     {

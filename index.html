@@ -146,31 +146,56 @@
       }
 
       function checkGeofenceAPI(lat, lng) {
-        // Bỏ comment dòng dưới khi chạy project C# thực tế (thay thế URL cổng Localhost của bạn)
-        // const apiUrl = `https://localhost:7001/api/location/check?lat=${lat}&lng=${lng}`;
+        // Gọi API của Server ASP.NET Core đang chạy ở cổng 5555
+        const apiUrl = `http://localhost:5555/api/location/check?lat=${lat}&lng=${lng}`;
 
-        // Để test giao diện tạm thời, sử dụng Mock Logic trực tiếp nếu chưa bật server C#
-        const distanceToSGU = calculateHaversineDistance(
-          lat,
-          lng,
-          10.76,
-          106.6822,
-        );
-        if (distanceToSGU <= 150) {
-          triggerAudio(
-            1,
-            "Trường Đại học Sài Gòn (SGU)",
-            "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
-          );
-        }
+        fetch(apiUrl)
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error("Mạng hoặc Server gặp sự cố");
+            }
+            return response.json();
+          })
+          .then((data) => {
+            // Nếu API trả về true (có điểm POI nằm trong bán kính)
+            if (data.triggered === true) {
+              // Truyền ID, Tên điểm và Link nhạc vào hàm phát âm thanh
+              triggerAudio(data.poi.id, data.poi.name, data.audioUrl);
+            }
+          })
+          .catch((error) => {
+            console.error("Lỗi gọi API Geofence:", error);
+          });
       }
 
       // Narration Engine: Xử lý chống spam
+      function checkGeofenceAPI(lat, lng) {
+        // Gọi API của Server ASP.NET Core đang chạy ở cổng 5555
+        const apiUrl = `http://localhost:5555/api/location/check?lat=${lat}&lng=${lng}`;
+
+        fetch(apiUrl)
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error("Mạng hoặc Server gặp sự cố");
+            }
+            return response.json();
+          })
+          .then((data) => {
+            // Nếu API trả về true (có điểm POI nằm trong bán kính)
+            if (data.triggered === true) {
+              // Truyền ID, Tên điểm và Link nhạc vào hàm phát âm thanh
+              triggerAudio(data.poi.id, data.poi.name, data.audioUrl);
+            }
+          })
+          .catch((error) => {
+            console.error("Lỗi gọi API Geofence:", error);
+          });
+      }
+
+      // Narration Engine: Xử lý chống spam (Giữ nguyên)
       function triggerAudio(poiId, poiName, audioUrl) {
-        // Logic Cooldown: Đã phát rồi thì không phát lại trừ khi reset
         if (lastPlayedPoiId === poiId) return;
 
-        // Nếu đang phát dở một audio khác, dừng nó lại
         if (currentAudio && !currentAudio.paused) {
           currentAudio.pause();
         }
@@ -181,34 +206,17 @@
         currentAudio = new Audio(audioUrl);
         currentAudio
           .play()
-          .catch((e) =>
-            console.error(
-              "Trình duyệt chặn Autoplay. Người dùng cần tương tác trước.",
-              e,
-            ),
-          );
+          .catch((e) => console.error("Trình duyệt chặn Autoplay.", e));
 
         lastPlayedPoiId = poiId;
 
-        // Reset cooldown sau 5 phút (300000 ms) để có thể nghe lại khi quay lại điểm này
+        // Reset cooldown sau 5 phút (300000 ms)
         setTimeout(() => {
           if (lastPlayedPoiId === poiId) lastPlayedPoiId = null;
         }, 300000);
       }
 
       // Hàm tính khoảng cách tạm thời dùng ở Client khi Server chưa bật
-      function calculateHaversineDistance(lat1, lon1, lat2, lon2) {
-        const R = 6371000;
-        const dLat = ((lat2 - lat1) * Math.PI) / 180;
-        const dLon = ((lon2 - lon1) * Math.PI) / 180;
-        const a =
-          Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-          Math.cos((lat1 * Math.PI) / 180) *
-            Math.cos((lat2 * Math.PI) / 180) *
-            Math.sin(dLon / 2) *
-            Math.sin(dLon / 2);
-        return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
-      }
     </script>
   </body>
 </html>

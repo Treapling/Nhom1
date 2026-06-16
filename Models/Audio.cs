@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace TourGuideProject.Models
+namespace Nhom1.Models
 {
     public class Audio
     {
