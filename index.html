@@ -60,7 +60,18 @@
         font-size: 0.9rem;
         color: #6c757d;
       }
+      /* Giao diện vùng quét QR ẩn/hiện mượt mà */
+      #qr-reader-container {
+        display: none;
+        max-width: 100%;
+        margin-top: 15px;
+        padding: 10px;
+        border: 2px dashed #28a745;
+        border-radius: 8px;
+        background: #fafafa;
+      }
     </style>
+    <script src="https://unpkg.com/html5-qrcode"></script>
   </head>
   <body>
     <div class="app-container">
@@ -83,16 +94,22 @@
         >
           🚀 BẮT ĐẦU CHUYẾN ĐI
         </button>
+        
         <button
           id="btn-scan"
           class="btn btn-outline-secondary w-100 py-2 mt-2 fw-bold"
+          onclick="toggleQrScanner()"
         >
-          📷 Quét mã QR
+          📷 Quét mã QR địa điểm
         </button>
+
+        <div id="qr-reader-container">
+          <div id="qr-reader" style="width: 100%;"></div>
+          <p id="qr-status" class="small fw-bold text-muted mt-2">Đang khởi động camera...</p>
+        </div>
       </div>
     </div>
 
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
       var map = L.map("map-container").setView([10.76, 106.6822], 16);
@@ -110,8 +127,12 @@
 
       let isTracking = false;
       let currentAudio = null;
-      let lastPlayedPoiId = null; // Biến lưu trạng thái Cooldown
+      let lastPlayedPoiId = null; // Quản lý thời gian chờ Cooldown của GPS [cite: 6]
+      
+      let html5QrcodeScanner = null;
+      let isScannerOpen = false;
 
+      // --- LOGIC GPS ĐỊNH VỊ NỀN ---
       function startTour() {
         if (!navigator.geolocation) {
           alert("Trình duyệt không hỗ trợ GPS!");
@@ -135,7 +156,6 @@
             document.getElementById("poi-distance").innerText =
               `Tọa độ: ${lat.toFixed(4)}, ${lng.toFixed(4)}`;
 
-            // Gọi API backend để kiểm tra Geofence
             checkGeofenceAPI(lat, lng);
           },
           function (error) {
@@ -146,21 +166,16 @@
       }
 
       function checkGeofenceAPI(lat, lng) {
-        // Gọi API của Server ASP.NET Core đang chạy ở cổng 5555
-        const apiUrl = `http://localhost:5555/api/location/check?lat=${lat}&lng=${lng}`;
+        const apiUrl = `http://localhost:5555/api/location/check?lat=${lat}&lng=${lng}`; [cite: 50]
 
         fetch(apiUrl)
           .then((response) => {
-            if (!response.ok) {
-              throw new Error("Mạng hoặc Server gặp sự cố");
-            }
+            if (!response.ok) throw new Error("Mạng hoặc Server gặp sự cố");
             return response.json();
           })
           .then((data) => {
-            // Nếu API trả về true (có điểm POI nằm trong bán kính)
-            if (data.triggered === true) {
-              // Truyền ID, Tên điểm và Link nhạc vào hàm phát âm thanh
-              triggerAudio(data.poi.id, data.poi.name, data.audioUrl);
+            if (data.triggered === true) { [cite: 47]
+              triggerAudio(data.poi.id, data.poi.name, data.audioUrl); [cite: 47]
             }
           })
           .catch((error) => {
@@ -168,40 +183,16 @@
           });
       }
 
-      // Narration Engine: Xử lý chống spam
-      function checkGeofenceAPI(lat, lng) {
-        // Gọi API của Server ASP.NET Core đang chạy ở cổng 5555
-        const apiUrl = `http://localhost:5555/api/location/check?lat=${lat}&lng=${lng}`;
-
-        fetch(apiUrl)
-          .then((response) => {
-            if (!response.ok) {
-              throw new Error("Mạng hoặc Server gặp sự cố");
-            }
-            return response.json();
-          })
-          .then((data) => {
-            // Nếu API trả về true (có điểm POI nằm trong bán kính)
-            if (data.triggered === true) {
-              // Truyền ID, Tên điểm và Link nhạc vào hàm phát âm thanh
-              triggerAudio(data.poi.id, data.poi.name, data.audioUrl);
-            }
-          })
-          .catch((error) => {
-            console.error("Lỗi gọi API Geofence:", error);
-          });
-      }
-
-      // Narration Engine: Xử lý chống spam (Giữ nguyên)
-      function triggerAudio(poiId, poiName, audioUrl) {
-        if (lastPlayedPoiId === poiId) return;
+      // --- TRÌNH PHÁT NHẠC (NARRATION ENGINE) ---
+      function triggerAudio(poiId, poiName, audioUrl, isOverride = false) {
+        // Nếu là định vị GPS thông thường mà dính Cooldown trùng ID cũ thì bỏ qua [cite: 28]
+        if (!isOverride && lastPlayedPoiId === poiId) return;
 
         if (currentAudio && !currentAudio.paused) {
           currentAudio.pause();
         }
 
-        document.getElementById("poi-name").innerText =
-          `📍 Đang đến: ${poiName}`;
+        document.getElementById("poi-name").innerText = `📍 Đang đến: ${poiName}`;
 
         currentAudio = new Audio(audioUrl);
         currentAudio
@@ -210,13 +201,78 @@
 
         lastPlayedPoiId = poiId;
 
-        // Reset cooldown sau 5 phút (300000 ms)
+        // Reset cooldown định vị sau 5 phút (300000 ms)
         setTimeout(() => {
           if (lastPlayedPoiId === poiId) lastPlayedPoiId = null;
         }, 300000);
       }
 
-      // Hàm tính khoảng cách tạm thời dùng ở Client khi Server chưa bật
+      // --- LOGIC NHIỆM VỤ TV3: QUÉT QR & OVERRIDE COOLDOWN ---
+      function toggleQrScanner() {
+        const container = document.getElementById("qr-reader-container");
+        const btn = document.getElementById("btn-scan");
+
+        if (isScannerOpen) {
+          // Tắt máy quét camera
+          if (html5QrcodeScanner) {
+            html5QrcodeScanner.clear().then(() => {
+              container.style.display = "none";
+              btn.innerText = "📷 Quét mã QR địa điểm";
+              btn.classList.replace("btn-danger", "btn-outline-secondary");
+              isScannerOpen = false;
+            }).catch(err => console.error("Lỗi tắt camera:", err));
+          }
+        } else {
+          // Bật máy quét camera
+          container.style.display = "block";
+          btn.innerText = "🛑 Tắt Camera Quét";
+          btn.classList.replace("btn-outline-secondary", "btn-danger");
+          isScannerOpen = true;
+          document.getElementById("qr-status").innerText = "Đang tìm camera...";
+
+          html5QrcodeScanner = new Html5QrcodeScanner("qr-reader", { fps: 10, qrbox: 200 }, false);
+          html5QrcodeScanner.render(onQrCodeSuccess, onQrCodeError);
+        }
+      }
+
+      function onQrCodeSuccess(decodedText) {
+        const poiId = parseInt(decodedText.trim()); [cite: 24, 25]
+        
+        if (isNaN(poiId)) {
+          document.getElementById("qr-status").innerHTML = `<span class="text-danger">Mã QR không đúng định dạng ID địa điểm!</span>`;
+          return;
+        }
+
+        document.getElementById("qr-status").innerHTML = `<span class="text-warning">Đã nhận diện ID: ${poiId}. Đang đồng bộ...</span>`;
+
+        // Gọi API lấy dữ liệu POI cụ thể theo cấu trúc yêu cầu của TV3 [cite: 27, 45]
+        fetch(`http://localhost:5555/api/POI/${poiId}`) [cite: 45, 50]
+          .then(res => {
+            if (!res.ok) throw new Error("ID không tồn tại");
+            return res.json();
+          })
+          .then(poi => {
+            document.getElementById("qr-status").innerHTML = `<span class="text-success">Thành công! Đang mở bài nghe cho: ${poi.name}</span>`;
+            
+            // Xử lý link nhạc động kế thừa cấu trúc mảng Audios từ TV2 [cite: 16]
+            let finalAudioUrl = "default_audio.mp3";
+            if (poi.audios && poi.audios.length > 0) {
+              finalAudioUrl = poi.audios[0].audioUrl;
+            } else if (poi.audioUrl) {
+              finalAudioUrl = poi.audioUrl;
+            }
+
+            // CRITICAL LOGIC: Chuyền tham số true để BỎ QUA (OVERRIDE) mọi cooldown của hệ thống GPS [cite: 28]
+            triggerAudio(poi.id, poi.name, finalAudioUrl, true); [cite: 28]
+          })
+          .catch(err => {
+            document.getElementById("qr-status").innerHTML = `<span class="text-danger">Không tìm thấy địa điểm ứng với ID này!</span>`;
+          });
+      }
+
+      function onQrCodeError(errorMessage) {
+        // Để trống để tránh log tràn màn hình Console khi quét trượt khung hình
+      }
     </script>
   </body>
 </html>

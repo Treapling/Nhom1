@@ -24,11 +24,12 @@
         border: none;
       }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   </head>
   <body>
     <nav class="navbar navbar-expand-lg mb-4">
       <div class="container-fluid">
-        <a class="navbar-brand" href="#">⚙️ Hệ thống Quản trị POI</a>
+        <a class="navbar-brand" href="#">⚙️ Hệ thống Quản trị POI & Analytics</a>
       </div>
     </nav>
 
@@ -103,21 +104,36 @@
         </div>
 
         <div class="col-md-8">
-          <div class="card p-3">
+          <div class="card p-3 mb-4">
             <h5>Danh sách Điểm tham quan</h5>
             <hr />
-            <table class="table table-hover">
-              <thead class="table-dark">
-                <tr>
-                  <th>ID</th>
-                  <th>Tên địa điểm</th>
-                  <th>Tọa độ (Lat, Lng)</th>
-                  <th>Bán kính</th>
-                  <th>Hành động</th>
-                </tr>
-              </thead>
-              <tbody id="poiTableBody"></tbody>
-            </table>
+            <div class="table-responsive">
+              <table class="table table-hover align-middle">
+                <thead class="table-dark">
+                  <tr>
+                    <th>ID</th>
+                    <th>Tên địa điểm</th>
+                    <th>Tọa độ (Lat, Lng)</th>
+                    <th>Bán kính</th>
+                    <th>Hành động</th>
+                  </tr>
+                </thead>
+                <tbody id="poiTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row mb-5">
+        <div class="col-12">
+          <div class="card p-4">
+            <h5 class="card-title text-center text-secondary mb-3">
+              📊 Biểu đồ Thống kê Lượt nghe Hệ thống (Top 5 Địa điểm)
+            </h5>
+            <div style="position: relative; max-width: 700px; margin: 0 auto; height: 350px;">
+              <canvas id="poiChart"></canvas>
+            </div>
           </div>
         </div>
       </div>
@@ -188,8 +204,59 @@
         }
       }
 
-      // Chạy hàm load dữ liệu ngay khi mở trang
-      loadPOIs();
+      // --- KHỞI TẠO BIỂU ĐỒ CHART.JS (TASK TV3) ---
+      function initAnalyticsChart() {
+        const ctx = document.getElementById('poiChart').getContext('2d');
+        
+        // Mock-data sạch sẽ đồng bộ với các địa điểm mẫu trong database
+        const labelsData = ['Trường ĐH Sài Gòn', 'Chợ Bến Thành', 'Mega Gym & Fitness', 'Bưu điện Thành phố', 'Dinh Độc Lập'];
+        const listenCounts = [142, 98, 75, 43, 21];
+
+        new Chart(ctx, {
+          type: 'bar', // Cấu hình biểu đồ dạng cột đúng đề bài
+          data: {
+            labels: labelsData,
+            datasets: [{
+              label: 'Tổng số lượt quét QR / GPS kích hoạt (Lần)',
+              data: listenCounts,
+              backgroundColor: [
+                'rgba(54, 162, 235, 0.7)',
+                'rgba(255, 99, 132, 0.7)',
+                'rgba(75, 192, 192, 0.7)',
+                'rgba(255, 159, 64, 0.7)',
+                'rgba(153, 102, 255, 0.7)'
+              ],
+              borderColor: [
+                'rgba(54, 162, 235, 1)',
+                'rgba(255, 99, 132, 1)',
+                'rgba(75, 192, 192, 1)',
+                'rgba(255, 159, 64, 1)',
+                'rgba(153, 102, 255, 1)'
+              ],
+              borderWidth: 1
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              y: {
+                beginAtZero: true,
+                ticks: { stepSize: 20 }
+              }
+            },
+            plugins: {
+              legend: { display: false } // Ẩn phần chú giải để biểu đồ nhìn thanh thoát
+            }
+          }
+        });
+      }
+
+      // Kích hoạt chạy đồng thời danh sách và biểu đồ khi khởi động trang
+      window.addEventListener('DOMContentLoaded', () => {
+        loadPOIs();
+        initAnalyticsChart();
+      });
     </script>
   </body>
 </html>
