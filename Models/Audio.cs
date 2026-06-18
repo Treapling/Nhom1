@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace Nhom1.Models
 {
@@ -9,6 +10,7 @@ namespace Nhom1.Models
         public int Id { get; set; }
 
         [Required]
+        [JsonPropertyName("POI_Id")]
         public int POI_Id { get; set; }
 
         [ForeignKey("POI_Id")]
@@ -20,6 +22,6 @@ namespace Nhom1.Models
 
         [Required]
         [MaxLength(50)]
-        public string Language { get; set; } // Hỗ trợ đa ngôn ngữ như slide yêu cầu
+        public string Language { get; set; }
     }
 }

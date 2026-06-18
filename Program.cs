@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Nhom1.Data;
+using Nhom1.Services; 
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,12 +14,15 @@ builder.Services.AddCors(options =>
         policy => policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
 });
 
+
+builder.Services.AddScoped<GeofenceService>();
+
 // Thêm các dịch vụ cần thiết cho Web API
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-var app = builder.Build();
+var app = builder.Build(); 
 
 // Cấu hình pipeline xử lý HTTP request (bao gồm Swagger để kiểm thử API)
 if (app.Environment.IsDevelopment())
