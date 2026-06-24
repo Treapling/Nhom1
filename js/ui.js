@@ -10,6 +10,32 @@ document.addEventListener("DOMContentLoaded", function() {
     let userMarker = L.marker([10.7570, 106.6990]).addTo(map);
     userMarker.bindPopup("Vị trí của bạn").openPopup();
 
+    // Lấy thông tin sạp hàng ID = 6 và hiển thị lên bản đồ kèm mã QR
+    fetch('/api/POI/6')
+        .then(res => {
+            if(res.ok) return res.json();
+            throw new Error("Không tìm thấy POI 6");
+        })
+        .then(poi => {
+            const poiId = poi.id || poi.Id;
+            const poiName = poi.name || poi.Name;
+            const lat = poi.lat || poi.Lat;
+            const lng = poi.lng || poi.Lng;
+            
+            if(lat && lng) {
+                const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${poiId}`;
+                const popupContent = `
+                    <div style="text-align: center; min-width: 160px;">
+                        <h4 style="margin: 0 0 5px 0; font-weight: bold; color: #1e3a8a;">${poiName}</h4>
+                        <p style="margin: 0 0 10px 0; font-size: 12px; color: #6b7280;">Quét mã QR để nghe thông tin</p>
+                        <img src="${qrUrl}" alt="QR Code" style="width: 150px; height: 150px; margin: 0 auto; border-radius: 8px;" />
+                    </div>
+                `;
+                L.marker([lat, lng]).addTo(map).bindPopup(popupContent);
+            }
+        })
+        .catch(err => console.error("Lỗi khi tải POI 6:", err));
+
     const poiCard = document.getElementById('poi-card');
     const poiName = document.getElementById('poi-name'); 
     const poiDesc = document.getElementById('poi-desc');

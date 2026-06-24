@@ -52,7 +52,19 @@ app.MapGet("/", async context =>
     await context.Response.SendFileAsync("index.html");
 });
 
+app.MapGet("/index.html", async context =>
+{
+    context.Response.ContentType = "text/html; charset=utf-8";
+    await context.Response.SendFileAsync("index.html");
+});
+
 app.MapGet("/admin", async context =>
+{
+    context.Response.ContentType = "text/html; charset=utf-8";
+    await context.Response.SendFileAsync("admin.html");
+});
+
+app.MapGet("/admin.html", async context =>
 {
     context.Response.ContentType = "text/html; charset=utf-8";
     await context.Response.SendFileAsync("admin.html");
@@ -60,14 +72,12 @@ app.MapGet("/admin", async context =>
 
 app.MapGet("/login", async context =>
 {
-    context.Response.ContentType = "text/html; charset=utf-8";
-    await context.Response.SendFileAsync("login.html");
+    context.Response.Redirect("/admin");
 });
 
 app.MapGet("/vendor", async context =>
 {
-    context.Response.ContentType = "text/html; charset=utf-8";
-    await context.Response.SendFileAsync("vendor.html");
+    context.Response.Redirect("/admin");
 });
 
 app.Run();
