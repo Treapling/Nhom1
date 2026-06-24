@@ -42,8 +42,8 @@
       <div class="card p-4" style="width: 100%; max-width: 400px">
         <h4 class="text-center mb-4">Đăng nhập Hệ thống</h4>
         <div class="mb-3">
-          <label>Tài khoản</label>
-          <input
+          <label>Tài khoản</label
+          ><input
             type="text"
             id="loginUser"
             class="form-control"
@@ -51,8 +51,8 @@
           />
         </div>
         <div class="mb-4">
-          <label>Mật khẩu</label>
-          <input
+          <label>Mật khẩu</label
+          ><input
             type="password"
             id="loginPass"
             class="form-control"
@@ -88,11 +88,13 @@
                 ><input type="text" class="form-control" id="name" required />
               </div>
               <div class="mb-2">
-                <label class="form-label">Mô tả ngắn</label
+                <label class="form-label">Mô tả chi tiết (Tiếng Việt)</label
                 ><textarea
                   class="form-control"
                   id="description"
-                  rows="2"
+                  rows="3"
+                  required
+                  placeholder="Nhập mô tả để AI đọc..."
                 ></textarea>
               </div>
               <div class="row">
@@ -145,39 +147,42 @@
             </form>
           </div>
 
-          <div class="card p-3 mb-4">
-            <h5>Thêm File Âm Thanh (Audio)</h5>
+          <div
+            class="card p-3 mb-4 shadow-sm border-0"
+            style="background-color: #d1e7dd"
+          >
+            <h5 class="text-success text-dark">👤 Tạo Tài khoản Chủ Quán</h5>
             <hr />
-            <form id="audioForm">
+            <form id="createVendorForm">
               <div class="mb-2">
-                <label class="form-label">Mã địa điểm (POI ID)</label
-                ><input
-                  type="number"
-                  class="form-control"
-                  id="audioPoiId"
-                  required
-                  placeholder="Ví dụ: 3"
-                />
-              </div>
-              <div class="mb-2">
-                <label class="form-label">Đường dẫn file (AudioUrl)</label
+                <label class="form-label">Tên đăng nhập</label
                 ><input
                   type="text"
                   class="form-control"
-                  id="audioFilePath"
+                  id="newVendorUser"
                   required
-                  placeholder="https://example.com/audio.mp3"
+                />
+              </div>
+              <div class="mb-2">
+                <label class="form-label">Mật khẩu</label
+                ><input
+                  type="password"
+                  class="form-control"
+                  id="newVendorPass"
+                  required
                 />
               </div>
               <div class="mb-3">
-                <label class="form-label">Ngôn ngữ</label>
-                <select class="form-select" id="audioLanguage">
-                  <option value="vi">Tiếng Việt (vi)</option>
-                  <option value="en">Tiếng Anh (en)</option>
-                </select>
+                <label class="form-label">Tên quán / Cửa hàng</label
+                ><input
+                  type="text"
+                  class="form-control"
+                  id="newVendorShop"
+                  required
+                />
               </div>
-              <button type="submit" class="btn btn-success w-100">
-                Lưu Âm Thanh
+              <button type="submit" class="btn btn-success w-100 fw-bold">
+                Khởi tạo Tài Khoản
               </button>
             </form>
           </div>
@@ -190,8 +195,8 @@
             <hr />
             <form id="assignForm">
               <div class="mb-2">
-                <label class="form-label">Mã địa điểm (POI ID)</label>
-                <input
+                <label class="form-label">Mã địa điểm (POI ID)</label
+                ><input
                   type="number"
                   class="form-control"
                   id="assignPoiId"
@@ -200,8 +205,8 @@
                 />
               </div>
               <div class="mb-3">
-                <label class="form-label">Tài khoản nhận (Username)</label>
-                <input
+                <label class="form-label">Tài khoản nhận (Username)</label
+                ><input
                   type="text"
                   class="form-control"
                   id="assignVendor"
@@ -228,7 +233,6 @@
                     <th>Tên địa điểm</th>
                     <th>Tọa độ (Lat, Lng)</th>
                     <th>Bán kính</th>
-                    <th>Danh sách Audio</th>
                     <th>Hành động</th>
                   </tr>
                 </thead>
@@ -262,7 +266,6 @@
 
     <script>
       const API_URL = "/api/POI";
-      const AUDIO_API_URL = "/api/Audio";
       let myChartInstance = null;
 
       // Xử lý bảo mật đầu vào
@@ -305,7 +308,7 @@
         window.location.reload();
       }
 
-      // Load danh sách POI
+      // Load danh sách POI (Đã gỡ Audio)
       function loadPOIs() {
         fetch(API_URL, {
           method: "GET",
@@ -322,22 +325,11 @@
             const counts = data.map((poi) => poi.listenCount || 0);
 
             data.forEach((poi) => {
-              let audioListHtml =
-                poi.audios && poi.audios.length > 0
-                  ? poi.audios
-                      .map(
-                        (a) =>
-                          `<div class="small mb-1"><span class="badge bg-secondary">${a.language.toUpperCase()}</span> <a href="${a.filePath}" target="_blank">Link</a> <button class="btn btn-sm text-danger p-0 ms-1" onclick="deleteAudio(${a.id})">[Xóa]</button></div>`,
-                      )
-                      .join("")
-                  : '<span class="text-muted small">Chưa có audio</span>';
-
               tbody.innerHTML += `<tr>
                 <td>${poi.id}</td>
                 <td><strong>${poi.name}</strong><br><span class="badge bg-info text-dark mt-1">🎧 ${poi.listenCount || 0} lượt nghe</span></td>
                 <td>${poi.lat}, ${poi.lng}</td>
                 <td>${poi.radius}m</td>
-                <td>${audioListHtml}</td>
                 <td><button class="btn btn-sm btn-danger" onclick="deletePOI(${poi.id})">Xóa</button></td>
               </tr>`;
             });
@@ -399,31 +391,40 @@
           });
         });
 
-      // Xử lý Form Thêm Audio
+      // Xử lý Form Tạo Tài Khoản Vendor
       document
-        .getElementById("audioForm")
+        .getElementById("createVendorForm")
         .addEventListener("submit", function (e) {
           e.preventDefault();
-          const newAudio = {
-            POI_Id: parseInt(document.getElementById("audioPoiId").value),
-            filePath: document.getElementById("audioFilePath").value,
-            language: document.getElementById("audioLanguage").value,
-          };
-          fetch(AUDIO_API_URL, {
+          const user = document.getElementById("newVendorUser").value;
+          const pass = document.getElementById("newVendorPass").value;
+          const shop = document.getElementById("newVendorShop").value;
+
+          fetch("/api/User/vendor", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
               "ngrok-skip-browser-warning": "true",
               Authorization: "Bearer " + sessionStorage.getItem("adminToken"),
             },
-            body: JSON.stringify(newAudio),
-          }).then((res) => {
-            if (res.ok) {
-              alert("Thành công!");
-              document.getElementById("audioForm").reset();
-              loadPOIs();
-            }
-          });
+            body: JSON.stringify({
+              Username: user,
+              PasswordHash: pass,
+              ShopName: shop,
+            }),
+          })
+            .then((res) =>
+              res.json().then((data) => ({ status: res.status, body: data })),
+            )
+            .then((res) => {
+              if (res.status === 200) {
+                alert(res.body.message);
+                document.getElementById("createVendorForm").reset();
+              } else {
+                alert("Lỗi: " + res.body.message);
+              }
+            })
+            .catch((err) => alert("Lỗi mạng: " + err));
         });
 
       // Xử lý Gán Quyền Vendor
@@ -461,20 +462,6 @@
       function deletePOI(id) {
         if (confirm("Chắc chắn xóa?")) {
           fetch(`${API_URL}/${id}`, {
-            method: "DELETE",
-            headers: {
-              "ngrok-skip-browser-warning": "true",
-              Authorization: "Bearer " + sessionStorage.getItem("adminToken"),
-            },
-          }).then((res) => {
-            if (res.ok) loadPOIs();
-          });
-        }
-      }
-
-      function deleteAudio(audioId) {
-        if (confirm("Chắc chắn xóa Audio?")) {
-          fetch(`${AUDIO_API_URL}/${audioId}`, {
             method: "DELETE",
             headers: {
               "ngrok-skip-browser-warning": "true",

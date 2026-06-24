@@ -24,40 +24,6 @@
     <div class="container">
       <div class="row">
         <div class="col-md-4">
-          <div class="card p-3 mb-4 shadow-sm border-0">
-            <h5>Thêm Audio Thuyết minh</h5>
-            <hr />
-            <form id="audioForm">
-              <div class="mb-2">
-                <label class="form-label">Mã địa điểm (POI ID)</label>
-                <input
-                  type="number"
-                  class="form-control"
-                  id="audioPoiId"
-                  required
-                />
-              </div>
-              <div class="mb-2">
-                <label class="form-label">Link Audio (.mp3)</label>
-                <input
-                  type="text"
-                  class="form-control"
-                  id="audioFilePath"
-                  required
-                />
-              </div>
-              <div class="mb-3">
-                <label class="form-label">Ngôn ngữ</label>
-                <select class="form-select" id="audioLanguage">
-                  <option value="vi">Tiếng Việt</option>
-                  <option value="en">Tiếng Anh</option>
-                </select>
-              </div>
-              <button type="submit" class="btn btn-success w-100">
-                Lưu Audio
-              </button>
-            </form>
-          </div>
 
           <div class="card p-3 mb-4 shadow-sm border-0">
             <h5>Thêm Món Ăn (Menu)</h5>
@@ -159,33 +125,6 @@
           })
           .catch((err) => console.error(err));
       }
-
-      document
-        .getElementById("audioForm")
-        .addEventListener("submit", function (e) {
-          e.preventDefault();
-          const newAudio = {
-            POI_Id: parseInt(document.getElementById("audioPoiId").value),
-            filePath: document.getElementById("audioFilePath").value,
-            language: document.getElementById("audioLanguage").value,
-          };
-          fetch("/api/Audio", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: "Bearer " + token,
-              "ngrok-skip-browser-warning": "true",
-            },
-            body: JSON.stringify(newAudio),
-          }).then((res) => {
-            if (res.ok) {
-              alert("Thêm Audio thành công!");
-              document.getElementById("audioForm").reset();
-            } else {
-              res.text().then((t) => alert("Lỗi: " + t));
-            }
-          });
-        });
 
       document
         .getElementById("menuForm")

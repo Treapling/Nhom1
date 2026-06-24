@@ -110,6 +110,7 @@
             id="audio-player"
             controls
             class="w-full h-10 outline-none mb-3"
+            style="display: none"
           ></audio>
 
           <div
@@ -125,24 +126,32 @@
           </div>
 
           <div
-            class="p-2 bg-gray-50 rounded-lg border border-gray-200 flex items-center gap-2"
+            class="p-3 bg-gray-50 rounded-lg border border-gray-200 flex flex-col gap-2"
           >
-            <select
-              id="rating-select"
-              class="border border-gray-300 p-1.5 rounded text-sm bg-white"
-            >
-              <option value="5">⭐⭐⭐⭐⭐</option>
-              <option value="4">⭐⭐⭐⭐</option>
-              <option value="3">⭐⭐⭐</option>
-              <option value="2">⭐⭐</option>
-              <option value="1">⭐</option>
-            </select>
-            <button
-              onclick="submitReview()"
-              class="flex-1 bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded-lg text-sm font-bold transition-colors"
-            >
-              Gửi Đánh Giá
-            </button>
+            <textarea
+              id="review-comment"
+              rows="2"
+              class="w-full border border-gray-300 p-2 rounded text-sm outline-none focus:border-blue-500"
+              placeholder="Nhập nhận xét của bạn về địa điểm này..."
+            ></textarea>
+            <div class="flex items-center gap-2">
+              <select
+                id="rating-select"
+                class="border border-gray-300 p-1.5 rounded text-sm bg-white flex-1"
+              >
+                <option value="5">⭐⭐⭐⭐⭐</option>
+                <option value="4">⭐⭐⭐⭐</option>
+                <option value="3">⭐⭐⭐</option>
+                <option value="2">⭐⭐</option>
+                <option value="1">⭐</option>
+              </select>
+              <button
+                onclick="submitReview()"
+                class="bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded-lg text-sm font-bold transition-colors"
+              >
+                Gửi Đánh Giá
+              </button>
+            </div>
           </div>
         </div>
       </main>
@@ -154,7 +163,7 @@
           <span class="text-xs font-semibold">📍 Bản đồ</span>
         </button>
         <button
-          onclick="alert('Tính năng đang phát triển')"
+          onclick="showBookmarks()"
           class="flex-1 flex flex-col items-center justify-center text-gray-500"
         >
           <span class="text-xs font-medium">❤️ Đã lưu</span>
@@ -196,13 +205,39 @@
         </div>
       </div>
     </div>
-
+    <div
+      id="bookmark-modal"
+      class="hidden fixed inset-0 z-[9999] bg-black/80 flex items-center justify-center p-4"
+    >
+      <div
+        class="bg-white w-full max-w-[400px] rounded-2xl overflow-hidden shadow-2xl flex flex-col max-h-[80vh]"
+      >
+        <div
+          class="bg-pink-600 px-4 py-3 text-white text-center font-bold text-lg flex justify-between items-center"
+        >
+          <span>❤️ Địa điểm đã lưu</span>
+          <button
+            onclick="
+              document.getElementById('bookmark-modal').classList.add('hidden')
+            "
+            class="text-white text-2xl leading-none"
+          >
+            &times;
+          </button>
+        </div>
+        <div class="p-4 overflow-y-auto flex-1">
+          <ul id="bookmark-list" class="divide-y divide-gray-200"></ul>
+        </div>
+      </div>
+    </div>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
     <script>
       let currentPoiId = null;
       let currentPoiName = "";
+      let currentPoiData = null;
 
+      // 1. Kiểm tra trạng thái kích hoạt Tour
       document.addEventListener("DOMContentLoaded", () => {
         if (localStorage.getItem("isTourActivated") === "true") {
           document.getElementById("activation-overlay").classList.add("hidden");
@@ -236,6 +271,7 @@
         }
       }
 
+      // 2. Khởi tạo Bản đồ Leaflet
       const map = L.map("map").setView([10.76, 106.6822], 16);
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(
         map,
@@ -246,6 +282,7 @@
         .bindPopup("Vị trí của bạn")
         .openPopup();
 
+      // 3. Xử lý Geofencing (GPS)
       if ("geolocation" in navigator) {
         let lastCheckTime = 0;
         let lastPlayedPoiId = null;
@@ -260,6 +297,8 @@
 
             if (Date.now() - lastCheckTime > 5000) {
               lastCheckTime = Date.now();
+
+              // BƯỚC 1: Kiểm tra xem có đang đứng trong vùng an toàn (bán kính) không
               fetch(`/api/location/check?lat=${lat}&lng=${lng}`, {
                 headers: {
                   "ngrok-skip-browser-warning": "true",
@@ -272,18 +311,31 @@
                     data.triggered === true &&
                     data.poi.id !== lastPlayedPoiId
                   ) {
-                    renderPoiCard(data.poi, data.FilePath);
                     lastPlayedPoiId = data.poi.id;
+
+                    // BƯỚC 2: Gọi API lấy chi tiết để có mô tả (description) phục vụ AI Dịch Thuật
+                    fetch(`/api/POI/${data.poi.id}`, {
+                      headers: {
+                        "ngrok-skip-browser-warning": "true",
+                        Authorization:
+                          "Bearer " + localStorage.getItem("guestToken"),
+                      },
+                    })
+                      .then((res) => res.json())
+                      .then((fullPoiInfo) => {
+                        renderPoiCard(fullPoiInfo);
+                      });
                   }
                 })
-                .catch((err) => {});
+                .catch((err) => console.error("Lỗi GPS API: ", err));
             }
           },
-          (err) => {},
+          (err) => console.warn(`Lỗi GPS: ${err.message}`),
           { enableHighAccuracy: true, maximumAge: 0, timeout: 5000 },
         );
       }
 
+      // 4. Xử lý Thực đơn (Menu)
       function fetchAndRenderMenu(poiId) {
         const menuContainer = document.getElementById("poi-menu-container");
         const menuList = document.getElementById("poi-menu-list");
@@ -300,10 +352,7 @@
               menuList.innerHTML = menus
                 .map(
                   (m) =>
-                    `<div class="flex justify-between border-b border-blue-100 py-1">
-                          <span class="text-gray-800">${m.itemName}</span>
-                          <span class="font-bold text-pink-600">${m.price.toLocaleString("vi-VN")}đ</span>
-                      </div>`,
+                    `<div class="flex justify-between border-b border-blue-100 py-1"><span class="text-gray-800">${m.itemName}</span><span class="font-bold text-pink-600">${m.price.toLocaleString("vi-VN")}đ</span></div>`,
                 )
                 .join("");
               menuContainer.classList.remove("hidden");
@@ -314,53 +363,55 @@
           .catch((err) => menuContainer.classList.add("hidden"));
       }
 
-      function renderPoiCard(poiInfo, fallbackAudioUrl = null) {
+      // 5. HÀM DỊCH TỰ ĐỘNG VÀ ĐỌC AI (Google Translate API)
+      async function translateAndSpeak(originalText, targetLang) {
+        if (!("speechSynthesis" in window)) return;
+        window.speechSynthesis.cancel(); // Tắt giọng đọc cũ
+
+        let textToSpeak = originalText;
+        const descElement = document.getElementById("poi-desc");
+        descElement.innerText = "Đang dịch tự động...";
+
+        if (targetLang !== "vi") {
+          try {
+            const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=vi&tl=${targetLang}&dt=t&q=${encodeURIComponent(originalText)}`;
+            const res = await fetch(url);
+            const data = await res.json();
+            textToSpeak = data[0].map((item) => item[0]).join("");
+          } catch (error) {
+            console.error("Lỗi dịch thuật:", error);
+            textToSpeak =
+              "Sorry, translation service is temporarily unavailable.";
+          }
+        }
+
+        descElement.innerText = textToSpeak;
+
+        const utterance = new SpeechSynthesisUtterance(textToSpeak);
+        utterance.lang = targetLang === "vi" ? "vi-VN" : "en-US";
+        utterance.rate = 0.9;
+        window.speechSynthesis.speak(utterance);
+      }
+
+      // 6. Hiển thị thông tin địa điểm
+      function renderPoiCard(poiInfo) {
         currentPoiId = poiInfo.id;
         currentPoiName = poiInfo.name;
+        currentPoiData = poiInfo;
 
         document.getElementById("poi-card").classList.remove("hidden");
         document.getElementById("poi-name").innerText = poiInfo.name;
-        document.getElementById("poi-desc").innerText = poiInfo.description;
 
         fetchAndRenderMenu(poiInfo.id);
 
-        const audioPlayer = document.getElementById("audio-player");
         const selectedLang = document.getElementById("lang-switch").value;
-
-        let targetAudioUrl = fallbackAudioUrl;
-        if (poiInfo.audios && poiInfo.audios.length > 0) {
-          const matchedAudio = poiInfo.audios.find(
-            (a) => a.language === selectedLang,
-          );
-          targetAudioUrl = matchedAudio
-            ? matchedAudio.filePath
-            : poiInfo.audios[0].filePath;
-        } else if (poiInfo.audioUrl) {
-          targetAudioUrl = poiInfo.audioUrl;
-        }
-
-        if (targetAudioUrl) {
-          audioPlayer.src = targetAudioUrl;
-          audioPlayer.play().catch((e) => {
-            readTextToSpeech(poiInfo.description, selectedLang);
-          });
-        } else {
-          readTextToSpeech(poiInfo.description, selectedLang);
-        }
-      }
-
-      function readTextToSpeech(text, lang) {
-        if ("speechSynthesis" in window) {
-          window.speechSynthesis.cancel();
-          const utterance = new SpeechSynthesisUtterance(text);
-          utterance.lang = lang === "vi" ? "vi-VN" : "en-US";
-          window.speechSynthesis.speak(utterance);
-        }
+        translateAndSpeak(poiInfo.description, selectedLang);
       }
 
       function submitReview() {
         if (!currentPoiId) return;
         const rating = document.getElementById("rating-select").value;
+        const comment = document.getElementById("review-comment").value; // Lấy dữ liệu văn bản
         const token = localStorage.getItem("guestToken");
 
         fetch("/api/Review", {
@@ -373,10 +424,13 @@
           body: JSON.stringify({
             POI_Id: currentPoiId,
             Rating: parseInt(rating),
-            Comment: "Đánh giá từ App",
+            Comment: comment || "Đánh giá từ App", // Nếu khách bỏ trống, dùng mặc định
           }),
         }).then((res) => {
-          if (res.ok) alert("Cảm ơn bạn! Đã gửi đánh giá " + rating + " sao.");
+          if (res.ok) {
+            alert("Cảm ơn bạn! Đã gửi đánh giá " + rating + " sao.");
+            document.getElementById("review-comment").value = ""; // Xóa form sau khi gửi
+          }
         });
       }
 
@@ -395,11 +449,55 @@
         localStorage.setItem("bookmarkedPOIs", JSON.stringify(bookmarks));
       }
 
+      function showBookmarks() {
+        const bookmarks =
+          JSON.parse(localStorage.getItem("bookmarkedPOIs")) || [];
+        const list = document.getElementById("bookmark-list");
+
+        if (bookmarks.length === 0) {
+          list.innerHTML =
+            "<p class='text-gray-500 text-center py-4'>Chưa có địa điểm nào được lưu.</p>";
+        } else {
+          list.innerHTML = bookmarks
+            .map(
+              (b) => `
+                <li class="py-3 flex justify-between items-center">
+                    <span class="font-medium text-gray-800">${b.name}</span>
+                    <button onclick="removeBookmark(${b.id})" class="text-red-500 text-sm border border-red-500 rounded px-2 py-1 hover:bg-red-50">Xóa</button>
+                </li>
+            `,
+            )
+            .join("");
+        }
+        document.getElementById("bookmark-modal").classList.remove("hidden");
+      }
+
+      function removeBookmark(id) {
+        let bookmarks =
+          JSON.parse(localStorage.getItem("bookmarkedPOIs")) || [];
+        bookmarks = bookmarks.filter((b) => b.id !== id);
+        localStorage.setItem("bookmarkedPOIs", JSON.stringify(bookmarks));
+        showBookmarks(); // Cập nhật lại giao diện danh sách ngay lập tức
+      }
+
+      // 7. Sự kiện chuyển ngôn ngữ thời gian thực
+      document
+        .getElementById("lang-switch")
+        .addEventListener("change", function () {
+          if (currentPoiData && currentPoiData.description) {
+            const selectedLang = this.value;
+            translateAndSpeak(currentPoiData.description, selectedLang);
+          }
+        });
+
+      // 8. Quét QR
       const qrModal = document.getElementById("qr-modal");
       let html5QrCode = null;
 
       document.getElementById("btn-scan-qr").addEventListener("click", () => {
+        if ("speechSynthesis" in window) window.speechSynthesis.cancel(); // Ngắt giọng đọc khi mở camera
         qrModal.classList.remove("hidden");
+
         html5QrCode = new Html5Qrcode("qr-reader");
         html5QrCode
           .start(
@@ -442,6 +540,7 @@
       }
 
       document.getElementById("btn-close-qr").addEventListener("click", () => {
+        if ("speechSynthesis" in window) window.speechSynthesis.cancel(); // Ngắt giọng đọc khi đóng camera
         if (html5QrCode) {
           html5QrCode.stop().then(() => html5QrCode.clear());
         }

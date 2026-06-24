@@ -619,6 +619,6 @@ C:\Users\ADMIN\Nhom1 - new\Nhom1\bin\Debug\net10.0\Microsoft.IdentityModel.Proto
 C:\Users\ADMIN\Nhom1 - new\Nhom1\bin\Debug\net10.0\Microsoft.IdentityModel.Tokens.dll
 C:\Users\ADMIN\Nhom1 - new\Nhom1\bin\Debug\net10.0\System.IdentityModel.Tokens.Jwt.dll
 C:\Users\ADMIN\Nhom1 - new\Nhom1\obj\Debug\net10.0\compressed\uykt2fsp2d-{0}-vhoa2b2nyk-vhoa2b2nyk.gz
-C:\Users\ADMIN\Nhom1 - new\Nhom1\obj\Debug\net10.0\compressed\rc3xwp9tdy-{0}-wvuv3apfdl-wvuv3apfdl.gz
-C:\Users\ADMIN\Nhom1 - new\Nhom1\obj\Debug\net10.0\compressed\ikdc46q5kj-{0}-z3hulfpcpz-z3hulfpcpz.gz
-C:\Users\ADMIN\Nhom1 - new\Nhom1\obj\Debug\net10.0\compressed\jc4zt4shzo-{0}-9rp09kz37s-9rp09kz37s.gz
+C:\Users\ADMIN\Nhom1 - new\Nhom1\obj\Debug\net10.0\compressed\jc4zt4shzo-{0}-roz88079cw-roz88079cw.gz
+C:\Users\ADMIN\Nhom1 - new\Nhom1\obj\Debug\net10.0\compressed\rc3xwp9tdy-{0}-xzvd0heq4c-xzvd0heq4c.gz
+C:\Users\ADMIN\Nhom1 - new\Nhom1\obj\Debug\net10.0\compressed\ikdc46q5kj-{0}-kkjhp709vt-kkjhp709vt.gz
