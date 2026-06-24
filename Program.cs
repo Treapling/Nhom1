@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Nhom1.Data;
 using Nhom1.Services; 
+using Microsoft.Extensions.FileProviders;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -33,10 +34,28 @@ if (app.Environment.IsDevelopment())
 
 app.UseCors("AllowAll");
 
-app.UseHttpsRedirection();
+// app.UseHttpsRedirection();
 
 app.UseAuthorization();
 
 app.MapControllers();
+
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(Path.Combine(builder.Environment.ContentRootPath, "js")),
+    RequestPath = "/js"
+});
+
+app.MapGet("/", async context =>
+{
+    context.Response.ContentType = "text/html; charset=utf-8";
+    await context.Response.SendFileAsync("index.html");
+});
+
+app.MapGet("/admin", async context =>
+{
+    context.Response.ContentType = "text/html; charset=utf-8";
+    await context.Response.SendFileAsync("admin.html");
+});
 
 app.Run();

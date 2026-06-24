@@ -1,13 +1,13 @@
 document.addEventListener("DOMContentLoaded", function() {
     // === 1. LOGIC BẢN ĐỒ VÀ ĐỊNH VỊ ===
-    const map = L.map('map').setView([10.7600, 106.6822], 16);
+    const map = L.map('map').setView([10.7570, 106.6990], 17);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; OpenStreetMap contributors'
     }).addTo(map);
 
     setTimeout(() => { map.invalidateSize(); }, 500);
 
-    let userMarker = L.marker([10.7600, 106.6822]).addTo(map);
+    let userMarker = L.marker([10.7570, 106.6990]).addTo(map);
     userMarker.bindPopup("Vị trí của bạn").openPopup();
 
     const poiCard = document.getElementById('poi-card');
@@ -35,7 +35,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 const currentTime = Date.now();
                 if (currentTime - lastCheckTime > 5000) {
                     lastCheckTime = currentTime; 
-                    fetch(`http://localhost:5555/api/location/check?lat=${lat}&lng=${lng}`)
+                    fetch(`/api/location/check?lat=${lat}&lng=${lng}`)
                         .then(response => response.json())
                         .then(data => {
                             if (data.triggered === true) {

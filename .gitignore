@@ -1,0 +1,6 @@
+bin/
+obj/
+*.exe
+*.db-shm
+*.db-wal
+cloudflared.exe
