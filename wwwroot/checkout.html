@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>Thanh toán Vé 24h - SGU Tour Guide</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body
+    class="bg-gray-100 font-sans antialiased flex items-center justify-center min-h-screen p-4"
+  >
+    <div
+      class="bg-white w-full max-w-[400px] rounded-2xl shadow-xl overflow-hidden"
+    >
+      <div class="bg-pink-600 p-4 text-center">
+        <h2 class="text-white text-xl font-bold">Thanh toán vé Audio 24h</h2>
+      </div>
+      <div class="p-6 text-center">
+        <p class="text-gray-600 mb-4">
+          Quét mã QR dưới đây bằng ví MoMo hoặc ứng dụng Ngân hàng để kích hoạt
+          hệ thống AI Tour Guide.
+        </p>
+
+        <div
+          class="bg-gray-200 w-48 h-48 mx-auto rounded-lg flex items-center justify-center mb-4 border-4 border-pink-500 border-dashed"
+        >
+          <span class="text-gray-500 font-bold"
+            >MÃ QR MOMO<br />(20.000 VNĐ)</span
+          >
+        </div>
+
+        <div
+          class="bg-blue-50 text-blue-800 p-3 rounded-lg text-sm mb-6 text-left"
+        >
+          <strong>Quyền lợi:</strong><br />
+          - Nghe thuyết minh tự động qua GPS<br />
+          - Không giới hạn số lần quét QR địa điểm<br />
+          - Hiệu lực: 24 giờ kể từ lúc thanh toán
+        </div>
+
+        <button
+          id="btn-confirm"
+          onclick="processPayment()"
+          class="w-full bg-pink-600 hover:bg-pink-700 text-white font-bold py-3 rounded-xl shadow transition-colors text-lg"
+        >
+          Xác nhận đã chuyển khoản
+        </button>
+        <a href="index.html" class="block mt-4 text-gray-500 underline text-sm"
+          >Quay lại trang chủ</a
+        >
+      </div>
+    </div>
+
+    <script>
+      function processPayment() {
+        const btn = document.getElementById("btn-confirm");
+        btn.innerText = "Đang xử lý...";
+        btn.disabled = true;
+
+        // Gọi API cấp JWT Token 24h
+        fetch("/api/Auth/guest-token", {
+          method: "POST",
+          headers: { "ngrok-skip-browser-warning": "true" },
+        })
+          .then((res) => res.json())
+          .then((data) => {
+            // Lưu token và đánh dấu đã kích hoạt
+            localStorage.setItem("guestToken", data.token);
+            localStorage.setItem("isTourActivated", "true");
+
+            alert(
+              "Thanh toán thành công! Chào mừng bạn đến với SGU Tour Guide.",
+            );
+            window.location.href = "index.html"; // Chuyển hướng vào bản đồ
+          })
+          .catch((err) => {
+            alert("Lỗi mạng: Không thể kết nối Server.");
+            btn.innerText = "Thử lại";
+            btn.disabled = false;
+          });
+      }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,452 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>SGU Tour Guide</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    />
+    <script
+      src="https://unpkg.com/html5-qrcode"
+      type="text/javascript"
+    ></script>
+  </head>
+  <body
+    class="bg-gray-800 text-gray-900 font-sans antialiased flex items-center justify-center min-h-screen"
+  >
+    <div
+      id="activation-overlay"
+      class="fixed inset-0 z-[10000] bg-white flex flex-col items-center justify-center px-6 text-center"
+    >
+      <div class="mb-6"><span class="text-6xl">🗺️</span></div>
+      <h2 class="text-3xl font-extrabold text-blue-700 mb-2">SGU Tour Guide</h2>
+      <p class="text-gray-600 mb-8 font-medium">
+        Vui lòng nhập mã chuyến đi để mở khóa bản đồ và trải nghiệm thuyết minh
+        tự động.
+      </p>
+      <input
+        type="text"
+        id="tourCodeInput"
+        placeholder="Nhập mã (VD: SGU2026)"
+        class="w-full max-w-[300px] border-2 border-blue-200 rounded-xl p-4 text-center text-xl font-bold text-blue-800 mb-4 focus:outline-none focus:border-blue-500 uppercase transition-colors"
+      />
+
+      <button
+        onclick="checkTourCode()"
+        class="w-full max-w-[300px] bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl shadow-lg transition-colors text-lg"
+      >
+        Kích Hoạt Ngay
+      </button>
+
+      <div class="mt-4 mb-2">
+        <span class="text-gray-400 font-medium">--- Hoặc ---</span>
+      </div>
+
+      <a
+        href="checkout.html"
+        class="w-full max-w-[300px] bg-green-500 hover:bg-green-600 text-white font-bold py-4 rounded-xl shadow-lg transition-colors text-lg inline-block text-center"
+      >
+        Mua vé nghe 24h (20.000đ)
+      </a>
+    </div>
+
+    <div
+      class="w-full max-w-[480px] h-screen bg-white shadow-2xl flex flex-col relative overflow-hidden"
+    >
+      <header
+        class="bg-blue-600 text-white px-4 py-3 flex justify-between items-center shadow-md z-20"
+      >
+        <div class="flex flex-col">
+          <h1 class="text-xl font-bold tracking-wide">SGU Tour Guide</h1>
+          <select
+            id="lang-switch"
+            class="bg-blue-800 text-white text-xs rounded mt-1 px-1 py-0.5 outline-none w-[100px] border-none"
+          >
+            <option value="vi">🇻🇳 Tiếng Việt</option>
+            <option value="en">🇬🇧 English</option>
+          </select>
+        </div>
+        <button
+          id="btn-scan-qr"
+          class="bg-blue-700 hover:bg-blue-800 px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-2"
+        >
+          <span class="text-base">📷</span> Quét QR
+        </button>
+      </header>
+
+      <main class="flex-1 relative flex flex-col">
+        <div
+          id="map"
+          class="w-full h-full bg-gray-200 flex items-center justify-center text-gray-500 z-0"
+        >
+          <p>📍 Khu vực hiển thị bản đồ</p>
+        </div>
+
+        <div
+          id="poi-card"
+          class="hidden absolute bottom-4 left-4 right-4 bg-white rounded-2xl shadow-xl p-5 border border-gray-100 z-10 max-h-[60vh] overflow-y-auto"
+        >
+          <div class="flex justify-between items-start mb-1">
+            <h2 id="poi-name" class="text-xl font-bold text-blue-900 pr-2">
+              Tên địa điểm
+            </h2>
+            <button
+              onclick="toggleBookmark()"
+              class="text-2xl hover:scale-110 transition-transform"
+              title="Lưu yêu thích"
+            >
+              ❤️
+            </button>
+          </div>
+
+          <p id="poi-desc" class="text-sm text-gray-600 mb-3">Đang tải...</p>
+          <audio
+            id="audio-player"
+            controls
+            class="w-full h-10 outline-none mb-3"
+          ></audio>
+
+          <div
+            id="poi-menu-container"
+            class="mb-4 text-sm bg-blue-50 p-3 rounded-lg hidden"
+          >
+            <h3
+              class="font-bold text-blue-800 mb-2 border-b border-blue-200 pb-1"
+            >
+              🍽️ Thực đơn:
+            </h3>
+            <div id="poi-menu-list" class="space-y-1"></div>
+          </div>
+
+          <div
+            class="p-2 bg-gray-50 rounded-lg border border-gray-200 flex items-center gap-2"
+          >
+            <select
+              id="rating-select"
+              class="border border-gray-300 p-1.5 rounded text-sm bg-white"
+            >
+              <option value="5">⭐⭐⭐⭐⭐</option>
+              <option value="4">⭐⭐⭐⭐</option>
+              <option value="3">⭐⭐⭐</option>
+              <option value="2">⭐⭐</option>
+              <option value="1">⭐</option>
+            </select>
+            <button
+              onclick="submitReview()"
+              class="flex-1 bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded-lg text-sm font-bold transition-colors"
+            >
+              Gửi Đánh Giá
+            </button>
+          </div>
+        </div>
+      </main>
+
+      <footer class="bg-white border-t border-gray-200 flex h-16 z-20">
+        <button
+          class="flex-1 flex flex-col items-center justify-center text-blue-600"
+        >
+          <span class="text-xs font-semibold">📍 Bản đồ</span>
+        </button>
+        <button
+          onclick="alert('Tính năng đang phát triển')"
+          class="flex-1 flex flex-col items-center justify-center text-gray-500"
+        >
+          <span class="text-xs font-medium">❤️ Đã lưu</span>
+        </button>
+        <button
+          onclick="alert('Tính năng đang phát triển')"
+          class="flex-1 flex flex-col items-center justify-center text-gray-500"
+        >
+          <span class="text-xs font-medium">⚙️ Cài đặt</span>
+        </button>
+      </footer>
+    </div>
+
+    <div
+      id="qr-modal"
+      class="hidden fixed inset-0 z-[9999] bg-black/80 flex items-center justify-center p-4"
+    >
+      <div
+        class="bg-white w-full max-w-[400px] rounded-2xl overflow-hidden shadow-2xl flex flex-col"
+      >
+        <div
+          class="bg-blue-600 px-4 py-3 text-white text-center font-bold text-lg"
+        >
+          Quét mã QR Địa điểm
+        </div>
+        <div class="p-4 bg-gray-50 flex-1">
+          <div
+            id="qr-reader"
+            class="w-full rounded-lg overflow-hidden border-2 border-dashed border-blue-400"
+          ></div>
+        </div>
+        <div class="p-4 bg-white border-t border-gray-100">
+          <button
+            id="btn-close-qr"
+            class="w-full bg-red-500 hover:bg-red-600 text-white py-3 rounded-xl font-semibold"
+          >
+            Đóng Camera
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <script>
+      let currentPoiId = null;
+      let currentPoiName = "";
+
+      document.addEventListener("DOMContentLoaded", () => {
+        if (localStorage.getItem("isTourActivated") === "true") {
+          document.getElementById("activation-overlay").classList.add("hidden");
+        }
+      });
+
+      function checkTourCode() {
+        const codeInput = document
+          .getElementById("tourCodeInput")
+          .value.trim()
+          .toUpperCase();
+        if (codeInput === "SGU2026") {
+          fetch("/api/Auth/guest-token", {
+            method: "POST",
+            headers: { "ngrok-skip-browser-warning": "true" },
+          })
+            .then((res) => res.json())
+            .then((data) => {
+              localStorage.setItem("guestToken", data.token);
+              localStorage.setItem("isTourActivated", "true");
+              document
+                .getElementById("activation-overlay")
+                .classList.add("hidden");
+              setTimeout(() => {
+                if (typeof map !== "undefined") map.invalidateSize();
+              }, 500);
+            })
+            .catch((err) => alert("Lỗi mạng"));
+        } else {
+          alert("Mã không hợp lệ.");
+        }
+      }
+
+      const map = L.map("map").setView([10.76, 106.6822], 16);
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(
+        map,
+      );
+      setTimeout(() => map.invalidateSize(), 500);
+      let userMarker = L.marker([10.76, 106.6822])
+        .addTo(map)
+        .bindPopup("Vị trí của bạn")
+        .openPopup();
+
+      if ("geolocation" in navigator) {
+        let lastCheckTime = 0;
+        let lastPlayedPoiId = null;
+
+        navigator.geolocation.watchPosition(
+          function (position) {
+            const lat = position.coords.latitude;
+            const lng = position.coords.longitude;
+            const newLatLng = new L.LatLng(lat, lng);
+            userMarker.setLatLng(newLatLng);
+            map.panTo(newLatLng);
+
+            if (Date.now() - lastCheckTime > 5000) {
+              lastCheckTime = Date.now();
+              fetch(`/api/location/check?lat=${lat}&lng=${lng}`, {
+                headers: {
+                  "ngrok-skip-browser-warning": "true",
+                  Authorization: "Bearer " + localStorage.getItem("guestToken"),
+                },
+              })
+                .then((response) => response.json())
+                .then((data) => {
+                  if (
+                    data.triggered === true &&
+                    data.poi.id !== lastPlayedPoiId
+                  ) {
+                    renderPoiCard(data.poi, data.FilePath);
+                    lastPlayedPoiId = data.poi.id;
+                  }
+                })
+                .catch((err) => {});
+            }
+          },
+          (err) => {},
+          { enableHighAccuracy: true, maximumAge: 0, timeout: 5000 },
+        );
+      }
+
+      function fetchAndRenderMenu(poiId) {
+        const menuContainer = document.getElementById("poi-menu-container");
+        const menuList = document.getElementById("poi-menu-list");
+
+        fetch(`/api/Menu/poi/${poiId}`, {
+          headers: {
+            Authorization: "Bearer " + localStorage.getItem("guestToken"),
+            "ngrok-skip-browser-warning": "true",
+          },
+        })
+          .then((res) => res.json())
+          .then((menus) => {
+            if (menus && menus.length > 0) {
+              menuList.innerHTML = menus
+                .map(
+                  (m) =>
+                    `<div class="flex justify-between border-b border-blue-100 py-1">
+                          <span class="text-gray-800">${m.itemName}</span>
+                          <span class="font-bold text-pink-600">${m.price.toLocaleString("vi-VN")}đ</span>
+                      </div>`,
+                )
+                .join("");
+              menuContainer.classList.remove("hidden");
+            } else {
+              menuContainer.classList.add("hidden");
+            }
+          })
+          .catch((err) => menuContainer.classList.add("hidden"));
+      }
+
+      function renderPoiCard(poiInfo, fallbackAudioUrl = null) {
+        currentPoiId = poiInfo.id;
+        currentPoiName = poiInfo.name;
+
+        document.getElementById("poi-card").classList.remove("hidden");
+        document.getElementById("poi-name").innerText = poiInfo.name;
+        document.getElementById("poi-desc").innerText = poiInfo.description;
+
+        fetchAndRenderMenu(poiInfo.id);
+
+        const audioPlayer = document.getElementById("audio-player");
+        const selectedLang = document.getElementById("lang-switch").value;
+
+        let targetAudioUrl = fallbackAudioUrl;
+        if (poiInfo.audios && poiInfo.audios.length > 0) {
+          const matchedAudio = poiInfo.audios.find(
+            (a) => a.language === selectedLang,
+          );
+          targetAudioUrl = matchedAudio
+            ? matchedAudio.filePath
+            : poiInfo.audios[0].filePath;
+        } else if (poiInfo.audioUrl) {
+          targetAudioUrl = poiInfo.audioUrl;
+        }
+
+        if (targetAudioUrl) {
+          audioPlayer.src = targetAudioUrl;
+          audioPlayer.play().catch((e) => {
+            readTextToSpeech(poiInfo.description, selectedLang);
+          });
+        } else {
+          readTextToSpeech(poiInfo.description, selectedLang);
+        }
+      }
+
+      function readTextToSpeech(text, lang) {
+        if ("speechSynthesis" in window) {
+          window.speechSynthesis.cancel();
+          const utterance = new SpeechSynthesisUtterance(text);
+          utterance.lang = lang === "vi" ? "vi-VN" : "en-US";
+          window.speechSynthesis.speak(utterance);
+        }
+      }
+
+      function submitReview() {
+        if (!currentPoiId) return;
+        const rating = document.getElementById("rating-select").value;
+        const token = localStorage.getItem("guestToken");
+
+        fetch("/api/Review", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: "Bearer " + token,
+            "ngrok-skip-browser-warning": "true",
+          },
+          body: JSON.stringify({
+            POI_Id: currentPoiId,
+            Rating: parseInt(rating),
+            Comment: "Đánh giá từ App",
+          }),
+        }).then((res) => {
+          if (res.ok) alert("Cảm ơn bạn! Đã gửi đánh giá " + rating + " sao.");
+        });
+      }
+
+      function toggleBookmark() {
+        if (!currentPoiId) return;
+        let bookmarks =
+          JSON.parse(localStorage.getItem("bookmarkedPOIs")) || [];
+        const index = bookmarks.findIndex((b) => b.id === currentPoiId);
+        if (index === -1) {
+          bookmarks.push({ id: currentPoiId, name: currentPoiName });
+          alert("Đã lưu vào danh sách yêu thích!");
+        } else {
+          bookmarks.splice(index, 1);
+          alert("Đã xóa khỏi danh sách yêu thích.");
+        }
+        localStorage.setItem("bookmarkedPOIs", JSON.stringify(bookmarks));
+      }
+
+      const qrModal = document.getElementById("qr-modal");
+      let html5QrCode = null;
+
+      document.getElementById("btn-scan-qr").addEventListener("click", () => {
+        qrModal.classList.remove("hidden");
+        html5QrCode = new Html5Qrcode("qr-reader");
+        html5QrCode
+          .start(
+            { facingMode: "environment" },
+            { fps: 10, qrbox: 250 },
+            onScanSuccess,
+          )
+          .catch(() => {
+            Html5Qrcode.getCameras().then((devices) => {
+              if (devices.length > 0)
+                html5QrCode.start(
+                  devices[0].id,
+                  { fps: 10, qrbox: 250 },
+                  onScanSuccess,
+                );
+            });
+          });
+      });
+
+      function onScanSuccess(decodedText) {
+        if (html5QrCode) {
+          html5QrCode.stop().then(() => html5QrCode.clear());
+        }
+        qrModal.classList.add("hidden");
+
+        const poiId = parseInt(decodedText);
+        fetch(`/api/POI/${poiId}`, {
+          method: "GET",
+          headers: {
+            "ngrok-skip-browser-warning": "true",
+            Authorization: "Bearer " + localStorage.getItem("guestToken"),
+          },
+        })
+          .then((res) => {
+            if (!res.ok) throw new Error("Không tìm thấy địa điểm");
+            return res.json();
+          })
+          .then((poiInfo) => renderPoiCard(poiInfo))
+          .catch((err) => alert("Lỗi quét QR"));
+      }
+
+      document.getElementById("btn-close-qr").addEventListener("click", () => {
+        if (html5QrCode) {
+          html5QrCode.stop().then(() => html5QrCode.clear());
+        }
+        qrModal.classList.add("hidden");
+      });
+    </script>
+  </body>
+</html>

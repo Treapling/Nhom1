@@ -1,20 +1,20 @@
 {
   "format": 1,
   "restore": {
-    "D:\\C# (doan)\\Nhom1\\Nhom1.csproj": {}
+    "C:\\Users\\ADMIN\\Nhom1 - new\\Nhom1\\Nhom1.csproj": {}
   },
   "projects": {
-    "D:\\C# (doan)\\Nhom1\\Nhom1.csproj": {
+    "C:\\Users\\ADMIN\\Nhom1 - new\\Nhom1\\Nhom1.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\C# (doan)\\Nhom1\\Nhom1.csproj",
+        "projectUniqueName": "C:\\Users\\ADMIN\\Nhom1 - new\\Nhom1\\Nhom1.csproj",
         "projectName": "Nhom1",
-        "projectPath": "D:\\C# (doan)\\Nhom1\\Nhom1.csproj",
-        "packagesPath": "C:\\Users\\Admin\\.nuget\\packages\\",
-        "outputPath": "D:\\C# (doan)\\Nhom1\\obj\\",
+        "projectPath": "C:\\Users\\ADMIN\\Nhom1 - new\\Nhom1\\Nhom1.csproj",
+        "packagesPath": "C:\\Users\\ADMIN\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\ADMIN\\Nhom1 - new\\Nhom1\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\Admin\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\ADMIN\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
@@ -48,6 +48,10 @@
           "framework": "net10.0",
           "targetAlias": "net10.0",
           "dependencies": {
+            "Microsoft.AspNetCore.Authentication.JwtBearer": {
+              "target": "Package",
+              "version": "[10.0.9, )"
+            },
             "Microsoft.AspNetCore.OpenApi": {
               "target": "Package",
               "version": "[10.0.9, )"
@@ -92,7 +96,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.300/PortableRuntimeIdentifierGraph.json",
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.301/PortableRuntimeIdentifierGraph.json",
           "packagesToPrune": {
             "Microsoft.AspNetCore": "(,10.0.32767]",
             "Microsoft.AspNetCore.Antiforgery": "(,10.0.32767]",
