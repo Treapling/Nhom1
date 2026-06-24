@@ -62,6 +62,9 @@ document.addEventListener("DOMContentLoaded", function() {
                 const descText = poiInfo.description || poiInfo.Description;
                 poiDesc.innerText = descText;
 
+                // Cập nhật biến toàn cục để hệ thống định vị GPS không đọc lại ngay lập tức
+                window.lastPlayedPoiId = poiInfo.id || poiInfo.Id;
+
                 // KIỂM TRA LOGIC ÂM THANH ĐA NGÔN NGỮ
                 const isAutoPlayEnabled = document.getElementById('toggle-tts').checked;
                 const currentLang = document.getElementById('lang-selector').value; 

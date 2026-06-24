@@ -29,6 +29,11 @@
             <div id="view-map" class="absolute inset-0 w-full h-full z-10 transition-opacity duration-300">
                 <div id="map" class="w-full h-full"></div>
 
+                <!-- Floating Start Tour Button -->
+                <button id="btn-start-tour" class="absolute top-4 left-1/2 transform -translate-x-1/2 z-[1000] bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-full shadow-lg transition-colors flex items-center gap-2">
+                    <span>📍</span> Khởi động Tour
+                </button>
+
                 <div id="poi-card"
                     class="absolute bottom-4 inset-x-0 mx-4 z-[1001] bg-white/95 backdrop-blur-sm p-5 rounded-2xl shadow-2xl transform transition-transform duration-300 hidden">
                     <button id="close-poi-btn"
@@ -126,8 +131,8 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
 
-    <script src="js/ui.js?v=2"></script>
-    <script src="js/qr-scanner.js?v=2"></script>
+    <script src="js/ui.js?v=3"></script>
+    <script src="js/qr-scanner.js?v=3"></script>
 
 </body>
 

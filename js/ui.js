@@ -15,58 +15,82 @@ document.addEventListener("DOMContentLoaded", function() {
     const poiDesc = document.getElementById('poi-desc');
     const audioPlayer = document.getElementById('audio-player');
 
-    if ("geolocation" in navigator) {
-        let lastCheckTime = 0;
-        let lastPlayedPoiId = null;
+    // Biến toàn cục để qr-scanner có thể ghi đè
+    window.lastPlayedPoiId = null;
+    let isTracking = false;
 
-        navigator.geolocation.watchPosition(
-            function(position) {
-                const lat = position.coords.latitude;
-                const lng = position.coords.longitude;
-                const newLatLng = new L.LatLng(lat, lng);
+    const btnStartTour = document.getElementById('btn-start-tour');
+    if (btnStartTour) {
+        btnStartTour.addEventListener('click', () => {
+            if (isTracking) return;
+            
+            if (!("geolocation" in navigator)) {
+                alert("Trình duyệt không hỗ trợ định vị GPS!");
+                return;
+            }
 
-                if (userMarker) {
-                    userMarker.setLatLng(newLatLng);
-                } else {
-                    userMarker = L.marker(newLatLng).addTo(map).bindPopup("Vị trí của bạn").openPopup();
-                }
-                map.panTo(newLatLng);
+            // Đổi trạng thái nút khi bắt đầu
+            isTracking = true;
+            btnStartTour.innerHTML = '<span>📡</span> Đang theo dõi...';
+            btnStartTour.classList.replace('bg-green-600', 'bg-blue-600');
+            btnStartTour.classList.replace('hover:bg-green-700', 'hover:bg-blue-700');
 
-                const currentTime = Date.now();
-                if (currentTime - lastCheckTime > 5000) {
-                    lastCheckTime = currentTime; 
-                    fetch(`/api/location/check?lat=${lat}&lng=${lng}`)
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.triggered === true) {
-                                poiCard.classList.remove('hidden');
-                                if (poiName) poiName.innerText = data.poi.name;
-                                if (poiDesc) poiDesc.innerText = data.poi.description;
+            let lastCheckTime = 0;
 
-                                if (data.poi.id !== lastPlayedPoiId) {
-                                    if (audioPlayer) {
-                                        audioPlayer.src = data.audioUrl;
-                                        audioPlayer.onerror = () => {
-                                            const utterance = new SpeechSynthesisUtterance(data.poi.description);
-                                            utterance.lang = 'vi-VN'; 
-                                            window.speechSynthesis.speak(utterance);
-                                        };
-                                        audioPlayer.play().catch(err => console.warn("Chặn âm thanh:", err));
+            navigator.geolocation.watchPosition(
+                function(position) {
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+                    const newLatLng = new L.LatLng(lat, lng);
+
+                    if (userMarker) {
+                        userMarker.setLatLng(newLatLng);
+                    } else {
+                        userMarker = L.marker(newLatLng).addTo(map).bindPopup("Vị trí của bạn").openPopup();
+                    }
+                    map.panTo(newLatLng);
+
+                    const currentTime = Date.now();
+                    if (currentTime - lastCheckTime > 5000) {
+                        lastCheckTime = currentTime; 
+                        fetch(`/api/location/check?lat=${lat}&lng=${lng}`)
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.triggered === true) {
+                                    poiCard.classList.remove('hidden');
+                                    if (poiName) poiName.innerText = data.poi.name;
+                                    if (poiDesc) poiDesc.innerText = data.poi.description;
+
+                                    if (data.poi.id !== window.lastPlayedPoiId) {
+                                        if (audioPlayer) {
+                                            audioPlayer.src = data.audioUrl;
+                                            audioPlayer.onerror = () => {
+                                                const utterance = new SpeechSynthesisUtterance(data.poi.description);
+                                                utterance.lang = 'vi-VN'; 
+                                                window.speechSynthesis.speak(utterance);
+                                            };
+                                            audioPlayer.play().catch(err => console.warn("Chặn âm thanh:", err));
+                                        }
+                                        window.lastPlayedPoiId = data.poi.id;
+
+                                        // Reset cooldown định vị sau 5 phút (300000 ms)
+                                        setTimeout(() => {
+                                            if (window.lastPlayedPoiId === data.poi.id) {
+                                                window.lastPlayedPoiId = null;
+                                            }
+                                        }, 300000);
                                     }
-                                    lastPlayedPoiId = data.poi.id;
+                                } else {
+                                    poiCard.classList.add('hidden');
                                 }
-                            } else {
-                                poiCard.classList.add('hidden');
-                            }
-                        })
-                        .catch(error => console.error("Lỗi API Định vị:", error));
-                }
-            },
-            function(error) { console.warn(`Lỗi định vị: ${error.message}`); },
-            { enableHighAccuracy: true, maximumAge: 0, timeout: 5000 }
-        );
-    } else {
-        console.error("Trình duyệt không hỗ trợ Geolocation.");
+                            })
+                            .catch(error => console.error("Lỗi API Định vị:", error));
+                    }
+                },
+                function(error) { console.warn(`Lỗi định vị: ${error.message}`); },
+                { enableHighAccuracy: true, maximumAge: 0, timeout: 5000 }
+            );
+        });
     }
 
     // === 2. LOGIC ĐÓNG THẺ POI CỦA BẠN ===
