@@ -27,6 +27,11 @@ namespace Nhom1.Models
         [Required]
         public int Priority { get; set; } // Mức ưu tiên xử lý chống spam
 
+        public int? VendorId { get; set; } // ID của người bán hàng (nếu có)
+        
+        [MaxLength(50)]
+        public string Status { get; set; } = "Approved"; // "PendingPayment", "PendingApproval", "Approved", "Rejected"
+
         // Navigation Properties: 1 Điểm có thể có nhiều file Audio và nằm trong nhiều Tour
         public ICollection<Audio> Audios { get; set; }
         public ICollection<Tour> Tours { get; set; }

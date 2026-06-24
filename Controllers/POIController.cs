@@ -22,6 +22,7 @@ namespace Nhom1.Controllers
         public async Task<IActionResult> GetPOIs()
         {
             var pois = await _context.POIs
+                .Where(p => p.Status == "Approved" || p.Status == null) // null check để an toàn cho data cũ
                 .Include(p => p.Audios)
                 .Select(p => new {
                     id = p.Id,
@@ -48,6 +49,10 @@ namespace Nhom1.Controllers
         [HttpPost]
         public async Task<ActionResult<POI>> PostPOI(POI pOI)
         {
+            // Admin thêm thì luôn Approved, Vendor thêm thì truyền Status từ frontend
+            if (string.IsNullOrEmpty(pOI.Status))
+                pOI.Status = "Approved";
+
             _context.POIs.Add(pOI);
             await _context.SaveChangesAsync();
 
@@ -83,5 +88,70 @@ namespace Nhom1.Controllers
 
             return NoContent();
         }
+
+        // --- CÁC API MỚI DÀNH CHO VENDOR VÀ ADMIN DUYỆT ---
+
+        // Lấy danh sách sạp hàng của một Vendor cụ thể
+        [HttpGet("vendor/{vendorId}")]
+        public async Task<IActionResult> GetVendorPOIs(int vendorId)
+        {
+            var pois = await _context.POIs.Where(p => p.VendorId == vendorId).ToListAsync();
+            return Ok(pois);
+        }
+
+        // Vendor xác nhận thanh toán -> Đổi trạng thái từ PendingPayment sang PendingApproval
+        [HttpPost("vendor/checkout")]
+        public async Task<IActionResult> VendorCheckout([FromBody] CheckoutRequest request)
+        {
+            var pois = await _context.POIs
+                .Where(p => request.PoiIds.Contains(p.Id) && p.VendorId == request.VendorId && p.Status == "PendingPayment")
+                .ToListAsync();
+
+            foreach (var p in pois)
+            {
+                p.Status = "PendingApproval";
+            }
+            await _context.SaveChangesAsync();
+
+            return Ok(new { message = "Đã xác nhận thanh toán chờ duyệt" });
+        }
+
+        // Lấy danh sách các sạp chờ duyệt (Dành cho Admin)
+        [HttpGet("pending")]
+        public async Task<IActionResult> GetPendingPOIs()
+        {
+            var pois = await _context.POIs.Where(p => p.Status == "PendingApproval").ToListAsync();
+            return Ok(pois);
+        }
+
+        // Admin duyệt sạp hàng
+        [HttpPut("approve/{id}")]
+        public async Task<IActionResult> ApprovePOI(int id)
+        {
+            var p = await _context.POIs.FindAsync(id);
+            if (p == null) return NotFound();
+
+            p.Status = "Approved";
+            await _context.SaveChangesAsync();
+            return Ok(new { message = "Đã duyệt" });
+        }
+
+        // Admin từ chối sạp hàng
+        [HttpPut("reject/{id}")]
+        public async Task<IActionResult> RejectPOI(int id)
+        {
+            var p = await _context.POIs.FindAsync(id);
+            if (p == null) return NotFound();
+
+            p.Status = "Rejected";
+            await _context.SaveChangesAsync();
+            return Ok(new { message = "Đã từ chối" });
+        }
+    }
+
+    public class CheckoutRequest
+    {
+        public int VendorId { get; set; }
+        public List<int> PoiIds { get; set; } = new List<int>();
     }
 }

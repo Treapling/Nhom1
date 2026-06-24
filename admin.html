@@ -129,6 +129,27 @@
         </div>
 
         <div class="col-md-8">
+          <!-- KHU VỰC DUYỆT SẠP HÀNG -->
+          <div class="card p-3 mb-4 border-warning shadow-sm">
+            <h5 class="text-warning">⚠️ Duyệt Sạp Hàng (Từ Vendor)</h5>
+            <hr />
+            <div class="table-responsive">
+              <table class="table table-hover align-middle">
+                <thead class="table-warning">
+                  <tr>
+                    <th>ID</th>
+                    <th>Tên sạp</th>
+                    <th>Vendor ID</th>
+                    <th>Hành động</th>
+                  </tr>
+                </thead>
+                <tbody id="pendingTableBody">
+                  <!-- Dữ liệu JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
           <div class="card p-3 mb-4">
             <h5>Danh sách Điểm tham quan</h5>
             <hr />
@@ -207,6 +228,60 @@
             });
           });
       }
+
+      // --- TÍNH NĂNG DUYỆT SẠP HÀNG ---
+      function loadPendingPOIs() {
+        fetch(API_URL + "/pending")
+          .then((res) => res.json())
+          .then((data) => {
+            const tbody = document.getElementById("pendingTableBody");
+            tbody.innerHTML = "";
+            if (data.length === 0) {
+              tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">Không có sạp hàng nào chờ duyệt</td></tr>';
+              return;
+            }
+            data.forEach((poi) => {
+              tbody.innerHTML += `
+                <tr>
+                    <td>${poi.id}</td>
+                    <td><strong>${poi.name}</strong><br><small class="text-muted">${poi.lat}, ${poi.lng}</small></td>
+                    <td>${poi.vendorId}</td>
+                    <td>
+                      <button class="btn btn-sm btn-success fw-bold" onclick="approvePOI(${poi.id})">✅ Duyệt</button>
+                      <button class="btn btn-sm btn-danger fw-bold ms-1" onclick="rejectPOI(${poi.id})">❌ Xoá</button>
+                    </td>
+                </tr>
+              `;
+            });
+          });
+      }
+
+      function approvePOI(id) {
+        if (!confirm("Xác nhận Duyệt sạp hàng này cho xuất hiện trên bản đồ?")) return;
+        fetch(`${API_URL}/approve/${id}`, { method: "PUT" })
+          .then(res => {
+            if(res.ok) {
+              alert("Đã duyệt thành công!");
+              loadPendingPOIs();
+              loadPOIs(); // reload ds chính
+            }
+          });
+      }
+
+      function rejectPOI(id) {
+        if (!confirm("Từ chối và xoá sạp hàng này?")) return;
+        fetch(`${API_URL}/reject/${id}`, { method: "PUT" })
+          .then(res => {
+            if(res.ok) {
+              alert("Đã từ chối!");
+              loadPendingPOIs();
+            }
+          });
+      }
+
+      // Khởi chạy khi tải trang
+      loadPOIs();
+      loadPendingPOIs();
 
       // 2. Hàm Thêm mới POI
       document
