@@ -23,8 +23,9 @@ document.addEventListener("DOMContentLoaded", function() {
 
         navigator.geolocation.watchPosition(
             function(position) {
-                const lat = position.coords.latitude;
-                const lng = position.coords.longitude;
+                // Giả lập cố định vị trí ở Phố ẩm thực Vĩnh Khánh
+                const lat = 10.7570;
+                const lng = 106.6990;
                 const newLatLng = new L.LatLng(lat, lng);
 
                 if (userMarker) {
