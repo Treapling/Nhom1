@@ -58,4 +58,16 @@ app.MapGet("/admin", async context =>
     await context.Response.SendFileAsync("admin.html");
 });
 
+app.MapGet("/login", async context =>
+{
+    context.Response.ContentType = "text/html; charset=utf-8";
+    await context.Response.SendFileAsync("login.html");
+});
+
+app.MapGet("/vendor", async context =>
+{
+    context.Response.ContentType = "text/html; charset=utf-8";
+    await context.Response.SendFileAsync("vendor.html");
+});
+
 app.Run();

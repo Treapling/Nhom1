@@ -10,6 +10,7 @@ namespace Nhom1.Data
         public DbSet<POI> POIs { get; set; }
         public DbSet<Audio> Audios { get; set; }
         public DbSet<Tour> Tours { get; set; }
+        public DbSet<User> Users { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -18,6 +19,11 @@ namespace Nhom1.Data
             modelBuilder.Entity<Tour>()
                 .HasMany(t => t.POIs)
                 .WithMany(p => p.Tours);
+
+            // Seed tài khoản Admin mặc định
+            modelBuilder.Entity<User>().HasData(
+                new User { Id = 1, Username = "admin", Password = "123", Role = "Admin" }
+            );
         }
     }
 }
