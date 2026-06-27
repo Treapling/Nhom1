@@ -124,12 +124,64 @@
         </div>
     </div>
 
+    <!-- GUEST PAYWALL / ACTIVATION OVERLAY -->
+    <div id="activation-overlay" class="fixed inset-0 z-[10000] bg-white flex flex-col items-center justify-center p-6 text-center">
+        <div class="w-full max-w-sm">
+            <div class="text-6xl mb-4">🗺️</div>
+            <h1 class="text-3xl font-black text-blue-600 mb-2 tracking-tight">SGU Tour Guide</h1>
+            <p class="text-gray-600 mb-8 font-medium">Vui lòng nhập mã chuyến đi để mở khóa bản đồ và trải nghiệm thuyết minh tự động.</p>
+            
+            <input type="text" id="activation-code" placeholder="NHẬP MÃ (VD: SGU2026)" 
+                   class="w-full border-2 border-blue-100 rounded-xl px-4 py-4 text-center mb-4 focus:outline-none focus:border-blue-500 font-bold text-gray-700 uppercase tracking-widest text-lg shadow-sm">
+            
+            <button id="btn-activate" 
+                    class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl shadow-lg shadow-blue-200 mb-4 transition-all transform active:scale-95 text-lg">
+                Kích Hoạt Ngay
+            </button>
+            <div class="flex items-center justify-center gap-2 mb-4">
+                <div class="h-px bg-gray-200 flex-1"></div>
+                <span class="text-gray-400 text-sm font-medium">Hoặc</span>
+                <div class="h-px bg-gray-200 flex-1"></div>
+            </div>
+            <button id="btn-buy-ticket" 
+                    class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-4 rounded-xl shadow-lg shadow-green-200 transition-all transform active:scale-95 text-lg">
+                Mua vé nghe 24h (20.000đ)
+            </button>
+        </div>
+    </div>
+
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
 
     <script src="js/ui.js?v=5"></script>
     <script src="js/qr-scanner.js?v=3"></script>
 
+    <script>
+        // Logic for Activation Overlay
+        const activationOverlay = document.getElementById('activation-overlay');
+        const btnActivate = document.getElementById('btn-activate');
+        const inputCode = document.getElementById('activation-code');
+        const btnBuyTicket = document.getElementById('btn-buy-ticket');
+
+        // Check local storage on load
+        if (localStorage.getItem("isTourUnlocked") === "true") {
+            activationOverlay.classList.add('hidden');
+        }
+
+        btnActivate.addEventListener('click', () => {
+            const code = inputCode.value.trim().toUpperCase();
+            if (code === 'SGU2026') {
+                localStorage.setItem("isTourUnlocked", "true");
+                activationOverlay.classList.add('hidden');
+            } else {
+                alert("Mã chuyến đi không hợp lệ. Vui lòng thử lại!");
+            }
+        });
+
+        btnBuyTicket.addEventListener('click', () => {
+            alert("Chức năng thanh toán đang được phát triển!");
+        });
+    </script>
 </body>
 
 </html>
