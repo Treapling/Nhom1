@@ -34,6 +34,7 @@
         <div class="container-fluid">
             <a class="navbar-brand" href="#" id="navbar-title">⚙️ Hệ thống Quản trị</a>
             <div class="d-flex text-white align-items-center">
+                <span class="badge bg-success me-3 fs-6" id="activeUsersBadge" style="display: none;">🟢 Đang online: 0</span>
                 <span class="me-3 fw-bold" id="userNameDisplay">Xin chào!</span>
                 <button class="btn btn-outline-light btn-sm" onclick="logout()">Đăng xuất</button>
             </div>
@@ -147,6 +148,7 @@
                             <select class="form-select" id="audioLanguage">
                                 <option value="vi">Tiếng Việt (vi)</option>
                                 <option value="en">Tiếng Anh (en)</option>
+                                <option value="zh">Tiếng Trung (zh)</option>
                             </select>
                         </div>
                         <button type="submit" class="btn btn-success w-100">Lưu Âm Thanh</button>
@@ -198,13 +200,23 @@
         </div>
 
         <div class="row mb-5">
-            <div class="col-12">
+            <div class="col-6">
                 <div class="card p-4">
                     <h5 class="card-title text-center text-secondary mb-3">
-                        📊 Biểu đồ Thống kê Lượt nghe Hệ thống (Top 5 Địa điểm)
+                        📊 Khách sử dụng theo giờ (Hôm nay)
                     </h5>
-                    <div style="position: relative; max-width: 700px; margin: 0 auto; height: 350px;">
-                        <canvas id="poiChart"></canvas>
+                    <div style="position: relative; margin: 0 auto; height: 300px; width: 100%;">
+                        <canvas id="hourChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6">
+                <div class="card p-4">
+                    <h5 class="card-title text-center text-secondary mb-3">
+                        📅 Khách sử dụng theo tháng (Năm nay)
+                    </h5>
+                    <div style="position: relative; margin: 0 auto; height: 300px; width: 100%;">
+                        <canvas id="monthChart"></canvas>
                     </div>
                 </div>
             </div>
@@ -283,6 +295,7 @@
                                             <th class="text-start">Tên sạp</th>
                                             <th>Tọa độ</th>
                                             <th>Trạng thái</th>
+                                            <th>Hành động</th>
                                         </tr>
                                     </thead>
                                     <tbody id="poiTableBodyVendor"></tbody>
@@ -312,6 +325,46 @@
                             </div>
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Sửa Sạp Hàng -->
+    <div class="modal fade" id="editPoiModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Sửa Sạp Hàng</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editPoiFormVendor">
+                        <input type="hidden" id="editPoiId" />
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Tên Sạp Hàng</label>
+                            <input type="text" class="form-control" id="editPoiName" required />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Mô tả</label>
+                            <textarea class="form-control" id="editPoiDesc" rows="3"></textarea>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-6">
+                                <label class="form-label fw-bold">Vĩ độ</label>
+                                <input type="number" step="any" class="form-control" id="editPoiLat" required />
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label fw-bold">Kinh độ</label>
+                                <input type="number" step="any" class="form-control" id="editPoiLng" required />
+                            </div>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Bán kính (m)</label>
+                            <input type="number" class="form-control" id="editPoiRadius" required />
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100 fw-bold">Gửi yêu cầu sửa</button>
+                    </form>
                 </div>
             </div>
         </div>
@@ -476,14 +529,21 @@
                     return;
                 }
                 data.forEach((poi) => {
+                    let requestType = "Tạo mới";
+                    if (poi.status === "PendingEditApproval") requestType = "Yêu cầu Sửa";
+                    if (poi.status === "PendingDeleteApproval") requestType = "Yêu cầu Xóa";
+                    
                     tbody.innerHTML += `
                         <tr>
                             <td>${poi.id}</td>
-                            <td><strong>${poi.name}</strong><br><small class="text-muted">${poi.lat}, ${poi.lng}</small></td>
+                            <td>
+                                <strong>${poi.name}</strong> <span class="badge bg-secondary ms-2">${requestType}</span><br>
+                                <small class="text-muted">${poi.lat}, ${poi.lng}</small>
+                            </td>
                             <td>${poi.vendorId}</td>
                             <td>
                             <button class="btn btn-sm btn-success fw-bold" onclick="approvePOI(${poi.id})">✅ Duyệt</button>
-                            <button class="btn btn-sm btn-danger fw-bold ms-1" onclick="rejectPOI(${poi.id})">❌ Xoá</button>
+                            <button class="btn btn-sm btn-danger fw-bold ms-1" onclick="rejectPOI(${poi.id})">❌ Từ chối</button>
                             </td>
                         </tr>
                     `;
@@ -547,22 +607,63 @@
             }
         }
 
-        function initAnalyticsChart() {
-            const ctx = document.getElementById('poiChart').getContext('2d');
-            new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: ['Trường ĐH Sài Gòn', 'Chợ Bến Thành', 'Mega Gym & Fitness', 'Bưu điện Thành phố', 'Dinh Độc Lập'],
-                    datasets: [{
-                        label: 'Tổng số lượt nghe (Lần)',
-                        data: [142, 98, 75, 43, 21],
-                        backgroundColor: ['rgba(54,162,235,0.7)', 'rgba(255,99,132,0.7)', 'rgba(75,192,192,0.7)', 'rgba(255,159,64,0.7)', 'rgba(153,102,255,0.7)'],
-                        borderColor: ['rgba(54,162,235,1)', 'rgba(255,99,132,1)', 'rgba(75,192,192,1)', 'rgba(255,159,64,1)', 'rgba(153,102,255,1)'],
-                        borderWidth: 1
-                    }]
-                },
-                options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, ticks: { stepSize: 20 } } }, plugins: { legend: { display: false } } }
-            });
+        let hourChartInstance = null;
+        let monthChartInstance = null;
+
+        async function initAnalyticsChart() {
+            await fetchAnalytics();
+            // Lặp lại mỗi 10 giây để lấy số liệu real-time
+            setInterval(fetchAnalytics, 10000);
+        }
+
+        async function fetchAnalytics() {
+            try {
+                const res = await fetch('/api/analytics/stats');
+                const data = await res.json();
+                
+                // 1. Cập nhật Badge Online
+                const badge = document.getElementById('activeUsersBadge');
+                badge.style.display = 'inline-block';
+                badge.innerText = `🟢 Đang online: ${data.activeUsers}`;
+
+                // 2. Vẽ biểu đồ theo Giờ
+                const ctxHour = document.getElementById('hourChart').getContext('2d');
+                if (hourChartInstance) hourChartInstance.destroy();
+                hourChartInstance = new Chart(ctxHour, {
+                    type: 'line',
+                    data: {
+                        labels: Array.from({length: 24}, (_, i) => `${i}h`),
+                        datasets: [{
+                            label: 'Lượt khách (Hôm nay)',
+                            data: data.visitsByHour,
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                            fill: true,
+                            tension: 0.3
+                        }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false }
+                });
+
+                // 3. Vẽ biểu đồ theo Tháng
+                const ctxMonth = document.getElementById('monthChart').getContext('2d');
+                if (monthChartInstance) monthChartInstance.destroy();
+                monthChartInstance = new Chart(ctxMonth, {
+                    type: 'bar',
+                    data: {
+                        labels: ['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8', 'T9', 'T10', 'T11', 'T12'],
+                        datasets: [{
+                            label: 'Lượt khách (Năm nay)',
+                            data: data.visitsByMonth,
+                            backgroundColor: 'rgba(75, 192, 192, 0.7)'
+                        }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false }
+                });
+
+            } catch(e) {
+                console.error('Lỗi lấy Analytics:', e);
+            }
         }
 
         // ==================== 3. LOGIC VENDOR ====================
@@ -623,10 +724,19 @@
             tbody.innerHTML = "";
             vendorPois.forEach(p => {
                 let statusBadge = "";
+                let actionButtons = "";
                 if (p.status === "PendingPayment") statusBadge = `<span class="badge bg-warning text-dark">Chờ thanh toán</span>`;
                 else if (p.status === "PendingApproval") statusBadge = `<span class="badge bg-info text-dark">Chờ Admin duyệt</span>`;
-                else if (p.status === "Approved") statusBadge = `<span class="badge bg-success">Đã duyệt (Active)</span>`;
-                else if (p.status === "Rejected") statusBadge = `<span class="badge bg-danger">Bị từ chối</span>`;
+                else if (p.status === "PendingEditApproval") statusBadge = `<span class="badge bg-info text-dark">Chờ duyệt sửa</span>`;
+                else if (p.status === "PendingDeleteApproval") statusBadge = `<span class="badge bg-danger">Chờ duyệt xóa</span>`;
+                else if (p.status === "Approved") {
+                    statusBadge = `<span class="badge bg-success">Đã duyệt (Active)</span>`;
+                    actionButtons = `
+                        <button class="btn btn-sm btn-outline-primary me-1" onclick="openEditModal(${p.id})">Sửa</button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="requestDeletePOI(${p.id})">Xóa</button>
+                    `;
+                }
+                else if (p.status === "Rejected") statusBadge = `<span class="badge bg-secondary">Bị từ chối</span>`;
 
                 tbody.innerHTML += `
                     <tr>
@@ -634,6 +744,7 @@
                         <td class="text-start fw-bold text-primary">${p.name}</td>
                         <td class="small text-muted">${p.lat}, ${p.lng}</td>
                         <td>${statusBadge}</td>
+                        <td>${actionButtons}</td>
                     </tr>
                 `;
             });
@@ -698,6 +809,57 @@
                 document.getElementById('tab-list').click();
             } else { alert("Lỗi khi gửi yêu cầu."); }
         });
+
+        function openEditModal(id) {
+            const p = vendorPois.find(x => x.id === id);
+            if (!p) return;
+            document.getElementById('editPoiId').value = p.id;
+            document.getElementById('editPoiName').value = p.name;
+            document.getElementById('editPoiDesc').value = p.description || "";
+            document.getElementById('editPoiLat').value = p.lat;
+            document.getElementById('editPoiLng').value = p.lng;
+            document.getElementById('editPoiRadius').value = p.radius;
+            
+            const editModal = new bootstrap.Modal(document.getElementById('editPoiModal'));
+            editModal.show();
+        }
+
+        document.getElementById('editPoiFormVendor')?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('editPoiId').value;
+            const updatedPOI = {
+                name: document.getElementById('editPoiName').value,
+                description: document.getElementById('editPoiDesc').value,
+                lat: parseFloat(document.getElementById('editPoiLat').value),
+                lng: parseFloat(document.getElementById('editPoiLng').value),
+                radius: parseFloat(document.getElementById('editPoiRadius').value)
+            };
+
+            const res = await fetch(`${API_URL}/vendor/request-edit/${id}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(updatedPOI)
+            });
+
+            if (res.ok) {
+                alert("Đã gửi yêu cầu sửa, vui lòng chờ Admin duyệt!");
+                bootstrap.Modal.getInstance(document.getElementById('editPoiModal')).hide();
+                loadVendorPOIs();
+            } else {
+                alert("Lỗi khi gửi yêu cầu.");
+            }
+        });
+
+        async function requestDeletePOI(id) {
+            if (!confirm("Bạn có chắc muốn gửi yêu cầu xóa sạp hàng này?")) return;
+            const res = await fetch(`${API_URL}/vendor/request-delete/${id}`, { method: "PUT" });
+            if (res.ok) {
+                alert("Đã gửi yêu cầu xóa, vui lòng chờ Admin duyệt!");
+                loadVendorPOIs();
+            } else {
+                alert("Lỗi khi gửi yêu cầu.");
+            }
+        }
 
         // ==================== KHỞI CHẠY ====================
         window.addEventListener('DOMContentLoaded', initApp);

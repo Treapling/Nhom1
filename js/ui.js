@@ -36,6 +36,25 @@ document.addEventListener("DOMContentLoaded", function() {
         })
         .catch(err => console.error("Lỗi khi tải POI 6:", err));
 
+    // --- KHỞI TẠO VÀ GỬI PING ANALYTICS ---
+    let sessionId = localStorage.getItem('touristSessionId');
+    if (!sessionId) {
+        sessionId = 'session_' + Math.random().toString(36).substr(2, 9);
+        localStorage.setItem('touristSessionId', sessionId);
+    }
+
+    function sendPing() {
+        fetch('/api/analytics/ping', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ sessionId: sessionId })
+        }).catch(err => console.log('Lỗi gửi ping:', err));
+    }
+    // Gửi ngay lúc vừa mở app, và cứ mỗi 30 giây gửi 1 lần
+    sendPing();
+    setInterval(sendPing, 30000);
+    // ----------------------------------------
+
     const poiCard = document.getElementById('poi-card');
     const poiName = document.getElementById('poi-name'); 
     const poiDesc = document.getElementById('poi-desc');
@@ -76,9 +95,7 @@ document.addEventListener("DOMContentLoaded", function() {
                                     if (audioPlayer) {
                                         audioPlayer.src = data.audioUrl;
                                         audioPlayer.onerror = () => {
-                                            const utterance = new SpeechSynthesisUtterance(data.poi.description);
-                                            utterance.lang = 'vi-VN'; 
-                                            window.speechSynthesis.speak(utterance);
+                                            console.warn("Lỗi tải audio định vị");
                                         };
                                         audioPlayer.play().catch(err => console.warn("Chặn âm thanh:", err));
                                     }
@@ -92,7 +109,8 @@ document.addEventListener("DOMContentLoaded", function() {
                                     }, 300000);
                                 }
                             } else {
-                                poiCard.classList.add('hidden');
+                                // Tắt tính năng tự động ẩn để không làm mất bảng khi quét QR
+                                // poiCard.classList.add('hidden');
                             }
                         })
                         .catch(error => console.error("Lỗi API Định vị:", error));
@@ -109,7 +127,6 @@ document.addEventListener("DOMContentLoaded", function() {
     const btnClosePoi = document.getElementById('close-poi-btn');
     btnClosePoi.addEventListener('click', () => {
         poiCard.classList.add('hidden'); 
-        window.speechSynthesis.cancel(); 
     });
 
     // === 3. LOGIC CHUYỂN TAB FOOTER ===

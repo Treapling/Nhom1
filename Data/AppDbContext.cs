@@ -11,6 +11,7 @@ namespace Nhom1.Data
         public DbSet<Audio> Audios { get; set; }
         public DbSet<Tour> Tours { get; set; }
         public DbSet<User> Users { get; set; }
+        public DbSet<VisitorLog> VisitorLogs { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

@@ -46,6 +46,12 @@ app.UseStaticFiles(new StaticFileOptions
     RequestPath = "/js"
 });
 
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(Path.Combine(builder.Environment.ContentRootPath, "audio")),
+    RequestPath = "/audio"
+});
+
 app.MapGet("/", async context =>
 {
     context.Response.ContentType = "text/html; charset=utf-8";

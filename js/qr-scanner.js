@@ -1,14 +1,4 @@
-// === ĐÁNH THỨC KHO GIỌNG NÓI CỦA TRÌNH DUYỆT (SỬA LỖI GIỌNG TIẾNG ANH) ===
-let voices = [];
-function loadVoicesSafe() {
-    voices = window.speechSynthesis.getVoices();
-}
-// Chạy kích hoạt lần đầu
-loadVoicesSafe();
-// Ép trình duyệt cập nhật lại danh sách ngay khi nạp xong ngầm
-if (window.speechSynthesis.onvoiceschanged !== undefined) {
-    window.speechSynthesis.onvoiceschanged = loadVoicesSafe;
-}
+// TÍNH NĂNG TỰ ĐỘNG PHÁT ÂM THANH THEO NGÔN NGỮ (CHỈ DÙNG FILE AUDIO)
 
 document.addEventListener("DOMContentLoaded", function() {
     const btnScanQR = document.getElementById('btn-scan-qr');
@@ -80,44 +70,15 @@ document.addEventListener("DOMContentLoaded", function() {
                         audioPlayer.src = matchedAudioUrl;
                         audioPlayer.play().catch(err => console.warn("Lỗi phát audio:", err));
                     } else {
-                        readTextToSpeech(descText, currentLang);
+                        console.warn("Không tìm thấy file audio cho ngôn ngữ: " + currentLang);
                     }
                 }
             })
             .catch(error => alert("Lỗi: " + error.message));
     }
 
-    // === 3. ĐỌC VĂN BẢN (TTS) ĐA NGÔN NGỮ CHUẨN QUỐC TỊCH ===
-    function readTextToSpeech(text, lang) {
-        if ('speechSynthesis' in window) {
-            window.speechSynthesis.cancel(); 
-            const utterance = new SpeechSynthesisUtterance(text);
-            
-            // Định dạng tag chuẩn: en -> en-US, vi -> vi-VN
-            const targetLang = (lang === 'en') ? 'en-US' : 'vi-VN';
-            utterance.lang = targetLang;
+    // (Đã loại bỏ hàm readTextToSpeech và tính năng đọc TTS)
 
-            // Cập nhật lại kho giọng nói một lần nữa cho chắc chắn
-            loadVoicesSafe();
-
-            // Tìm kiếm thông minh: Chuyển hết về chữ thường và thay dấu gạch dưới thành gạch ngang để so khớp
-            const matchedVoice = voices.find(v => {
-                const voiceLang = v.lang.replace('_', '-').toLowerCase();
-                return voiceLang.includes(targetLang.toLowerCase());
-            });
-            
-            // Nếu tìm thấy giọng chuẩn (Microsoft Anoki hoặc Google Tiếng Việt) thì ép chạy giọng đó
-            if (matchedVoice) {
-                utterance.voice = matchedVoice;
-            } else {
-                // Phương án dự phòng: Tìm bất kỳ giọng nào có chứa chữ 'vi'
-                const fallbackVoice = voices.find(v => v.lang.toLowerCase().includes('vi'));
-                if (fallbackVoice) utterance.voice = fallbackVoice;
-            }
-
-            window.speechSynthesis.speak(utterance);
-        }
-    }
 
     // === 4. ĐÓNG CAMERA KHI BẤM NÚT ĐÓNG ===
     btnCloseQR.addEventListener('click', () => {
