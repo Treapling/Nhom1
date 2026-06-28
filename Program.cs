@@ -3,13 +3,14 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.EntityFrameworkCore;
 using Nhom1.Data;
-using Nhom1.Services; 
+using Nhom1.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Khai báo kết nối cơ sở dữ liệu SQLite sử dụng chuỗi kết nối từ appsettings.json
+// Đã chuyển sang SQL Server
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddCors(options =>
 {
@@ -50,6 +51,7 @@ var app = builder.Build();
 // Cấu hình pipeline xử lý HTTP request
 if (app.Environment.IsDevelopment())
 {
+    app.UseDefaultFiles();
     app.UseSwagger();
     app.UseSwaggerUI();
 }

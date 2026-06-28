@@ -11,13 +11,16 @@ namespace Nhom1.Models
         public string Username { get; set; }
 
         [Required]
-        public string PasswordHash { get; set; } // Sẽ lưu mật khẩu mã hóa
+        public string PasswordHash { get; set; } 
 
         [Required]
-        public string Role { get; set; } // "Admin" hoặc "Vendor"
+        public string Role { get; set; } 
 
-        public string ShopName { get; set; } // Tên quán (Dành cho Vendor)
+        public string ShopName { get; set; } 
         public string ContactInfo { get; set; } 
-        public bool IsActive { get; set; } = true; // Admin có quyền khóa tài khoản
+        public bool IsActive { get; set; } = true; 
+
+        // GIỚI HẠN SLOT MỞ QUÁN: Đổi về 0 để bắt buộc mua Slot ngay từ quán đầu tiên
+        public int MaxPOISlots { get; set; } = 0; 
     }
 }

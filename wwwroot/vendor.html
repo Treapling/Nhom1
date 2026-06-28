@@ -3,158 +3,546 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Kênh Chủ Cửa Hàng (Vendor) - SGU Tour Guide</title>
+    <title>Vendor Dashboard - SGU Tour Guide</title>
     <link
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
       rel="stylesheet"
     />
+    <style>
+      body {
+        background-color: #f8f9fa;
+      }
+    </style>
   </head>
-  <body style="background-color: #f4f6f9">
-    <nav class="navbar navbar-expand-lg mb-4" style="background-color: #198754">
+  <body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-success mb-4 shadow-sm">
       <div class="container-fluid">
-        <a class="navbar-brand text-white fw-bold" href="#"
+        <a class="navbar-brand fw-bold" href="#"
           >🏪 Quản lý Gian hàng (Vendor)</a
         >
-        <button onclick="logout()" class="btn btn-sm btn-light">
-          Đăng xuất
-        </button>
+        <div class="d-flex gap-2">
+          <button
+            onclick="window.location.href = 'vendor-checkout.html'"
+            class="btn btn-warning fw-bold btn-sm"
+          >
+            ⭐ Mua thêm Slot
+          </button>
+          <button onclick="logout()" class="btn btn-outline-light btn-sm">
+            Đăng xuất
+          </button>
+        </div>
       </div>
     </nav>
 
     <div class="container">
       <div class="row">
-        <div class="col-md-4">
-
+        <div class="col-md-5">
           <div class="card p-3 mb-4 shadow-sm border-0">
-            <h5>Thêm Món Ăn (Menu)</h5>
-            <hr />
-            <form id="menuForm">
+            <h6 class="text-success border-bottom pb-2 fw-bold">
+              📍 Đăng ký Địa điểm mới
+            </h6>
+            <form id="poiForm">
               <div class="mb-2">
-                <label class="form-label">Mã địa điểm (POI ID)</label>
-                <input
-                  type="number"
-                  class="form-control"
-                  id="menuPoiId"
-                  required
-                />
-              </div>
-              <div class="mb-2">
-                <label class="form-label">Tên món</label>
                 <input
                   type="text"
-                  class="form-control"
-                  id="menuItemName"
+                  class="form-control form-control-sm"
+                  id="poiName"
+                  placeholder="Tên quán / Địa điểm"
                   required
                 />
               </div>
-              <div class="mb-3">
-                <label class="form-label">Giá tiền (VNĐ)</label>
-                <input
-                  type="number"
-                  class="form-control"
-                  id="menuPrice"
+
+              <div class="mb-2 border p-2 rounded bg-white">
+                <label class="form-label text-xs fw-bold text-muted mb-1"
+                  >Mô tả giới thiệu (Đa ngôn ngữ)</label
+                >
+                <textarea
+                  class="form-control form-control-sm mb-1"
+                  id="poiDescVi"
+                  rows="2"
+                  placeholder="🇻🇳 Tiếng Việt (Bắt buộc)"
                   required
-                />
+                ></textarea>
+                <div class="mb-2 border p-2 rounded bg-white">
+                  <label class="form-label text-xs fw-bold text-muted mb-1"
+                    >Mô tả giới thiệu (Hệ thống sẽ tự động dịch sang đa ngôn
+                    ngữ)</label
+                  >
+                  <textarea
+                    class="form-control form-control-sm mb-1"
+                    id="poiDescVi"
+                    rows="3"
+                    placeholder="🇻🇳 Nhập bằng Tiếng Việt (Bắt buộc)"
+                    required
+                  ></textarea>
+                </div>
               </div>
-              <button type="submit" class="btn btn-warning w-100 fw-bold">
-                Lưu Món Ăn
+
+              <div class="row">
+                <div class="col-6 mb-2">
+                  <input
+                    type="number"
+                    step="any"
+                    class="form-control form-control-sm"
+                    id="poiLat"
+                    placeholder="Vĩ độ (Lat)"
+                    required
+                  />
+                </div>
+                <div class="col-6 mb-2">
+                  <input
+                    type="number"
+                    step="any"
+                    class="form-control form-control-sm"
+                    id="poiLng"
+                    placeholder="Kinh độ (Lng)"
+                    required
+                  />
+                </div>
+              </div>
+              <div class="row mb-3">
+                <div class="col-6">
+                  <input
+                    type="number"
+                    class="form-control form-control-sm"
+                    id="poiRadius"
+                    value="50"
+                    placeholder="Bán kính (m)"
+                    required
+                  />
+                </div>
+                <div class="col-6">
+                  <input
+                    type="number"
+                    class="form-control form-control-sm"
+                    id="poiPriority"
+                    value="1"
+                    placeholder="Ưu tiên"
+                    required
+                  />
+                </div>
+              </div>
+              <button
+                type="submit"
+                class="btn btn-success btn-sm w-100 fw-bold"
+              >
+                Gửi Yêu Cầu Duyệt
               </button>
             </form>
           </div>
+
+          <div class="card p-3 mb-4 shadow-sm border-0 bg-light">
+            <h6 class="text-primary border-bottom pb-2 fw-bold">
+              ⚙️ Quản lý Dịch vụ Cơ sở
+            </h6>
+            <select
+              id="targetPoiSelect"
+              class="form-select form-select-sm mb-3 border-primary"
+            ></select>
+
+            <ul class="nav nav-tabs nav-fill mb-3 text-sm" id="vendorTabs">
+              <li class="nav-item">
+                <a
+                  class="nav-link active"
+                  data-bs-toggle="tab"
+                  href="#menuTab"
+                  onclick="switchTab('menuTab')"
+                  >Thực đơn</a
+                >
+              </li>
+              <li class="nav-item">
+                <a
+                  class="nav-link"
+                  data-bs-toggle="tab"
+                  href="#audioTab"
+                  onclick="switchTab('audioTab')"
+                  >Audio</a
+                >
+              </li>
+            </ul>
+
+            <div class="tab-content text-sm">
+              <div class="tab-pane fade show active" id="menuTab">
+                <form id="menuForm" class="mb-3">
+                  <div class="row">
+                    <div class="col-6 mb-2">
+                      <input
+                        type="text"
+                        class="form-control form-control-sm"
+                        id="menuItemName"
+                        placeholder="Tên món"
+                        required
+                      />
+                    </div>
+                    <div class="col-6 mb-2">
+                      <input
+                        type="number"
+                        class="form-control form-control-sm"
+                        id="menuPrice"
+                        placeholder="Giá (VNĐ)"
+                        required
+                      />
+                    </div>
+                  </div>
+                  <button
+                    type="submit"
+                    class="btn btn-primary btn-sm w-100 fw-bold"
+                  >
+                    Thêm Món Ăn
+                  </button>
+                </form>
+
+                <div class="table-responsive border rounded bg-white">
+                  <table class="table table-hover text-sm m-0">
+                    <thead class="table-light">
+                      <tr>
+                        <th>Tên món</th>
+                        <th>Giá</th>
+                        <th>Xóa</th>
+                      </tr>
+                    </thead>
+                    <tbody id="vendorMenuTableBody">
+                      <tr>
+                        <td colspan="3" class="text-center text-muted">
+                          Vui lòng chọn cơ sở...
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              <div class="tab-pane fade" id="audioTab">
+                <form id="audioForm">
+                  <div class="row mb-2">
+                    <div class="col-6">
+                      <select id="audioLang" class="form-select form-select-sm">
+                        <option value="vi">🇻🇳 Tiếng Việt</option>
+                        <option value="en">🇬🇧 Tiếng Anh</option>
+                        <option value="zh">🇨🇳 Tiếng Trung</option>
+                        <option value="ko">🇰🇷 Tiếng Hàn</option>
+                        <option value="ja">🇯🇵 Tiếng Nhật</option>
+                      </select>
+                    </div>
+                    <div class="col-6">
+                      <select
+                        id="audioPremium"
+                        class="form-select form-select-sm bg-warning text-dark fw-bold"
+                      >
+                        <option value="false">Audio Thường</option>
+                        <option value="true">⭐ Premium (Người đọc)</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="mb-3">
+                    <input
+                      type="file"
+                      class="form-control form-control-sm"
+                      id="audioFile"
+                      accept="audio/mp3"
+                      required
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    class="btn btn-dark btn-sm w-100 fw-bold"
+                  >
+                    Tải File Lên Server
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <div class="col-md-8">
-          <div class="card p-3 mb-4 shadow-sm border-0">
-            <h5>Danh sách Địa điểm của bạn</h5>
-            <hr />
-            <div class="table-responsive">
-              <table class="table table-hover align-middle">
-                <thead class="table-dark">
-                  <tr>
-                    <th>ID</th>
-                    <th>Tên gian hàng / Địa điểm</th>
-                    <th>Lượt khách</th>
-                  </tr>
-                </thead>
-                <tbody id="poiTableBody"></tbody>
-              </table>
+        <div class="col-md-7">
+          <ul class="nav nav-tabs mb-3" id="rightTabs">
+            <li class="nav-item">
+              <a
+                class="nav-link active"
+                data-bs-toggle="tab"
+                href="#poiListTab"
+                onclick="switchRightTab('poiListTab')"
+                >Địa điểm của bạn</a
+              >
+            </li>
+            <li class="nav-item">
+              <a
+                class="nav-link"
+                data-bs-toggle="tab"
+                href="#vendorReviewsTab"
+                onclick="switchRightTab('vendorReviewsTab')"
+                >Đánh giá khách hàng</a
+              >
+            </li>
+          </ul>
+
+          <div class="tab-content">
+            <div class="tab-pane fade show active" id="poiListTab">
+              <div class="card p-0 shadow-sm border-0">
+                <table class="table table-hover align-middle text-sm m-0">
+                  <thead class="table-dark">
+                    <tr>
+                      <th>ID</th>
+                      <th>Tên gian hàng</th>
+                      <th>Trạng thái</th>
+                      <th>Lượt nghe</th>
+                    </tr>
+                  </thead>
+                  <tbody id="poiTableBody"></tbody>
+                </table>
+              </div>
+            </div>
+            <div class="tab-pane fade" id="vendorReviewsTab">
+              <div class="card p-0 shadow-sm border-0">
+                <table class="table table-hover text-sm m-0">
+                  <thead class="table-light">
+                    <tr>
+                      <th>Cơ sở</th>
+                      <th>Đánh giá</th>
+                      <th>Bình luận</th>
+                    </tr>
+                  </thead>
+                  <tbody id="reviewsTableBody"></tbody>
+                </table>
+              </div>
             </div>
           </div>
         </div>
       </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-      const token = sessionStorage.getItem("adminToken");
-      if (!token) {
-        window.location.href = "admin.html";
-      } else {
+      // KIỂM TRA BẢO MẬT & ĐIỀU HƯỚNG VENDOR
+      function parseJwt(token) {
         try {
-          const payload = JSON.parse(atob(token.split(".")[1]));
-          if (payload.role !== "Vendor") {
-            window.location.href = "admin.html";
-          }
+          return JSON.parse(atob(token.split(".")[1]));
         } catch (e) {
-          window.location.href = "admin.html";
+          return null;
         }
       }
+
+      function checkAuth() {
+        const token = sessionStorage.getItem("adminToken");
+        if (!token) {
+          window.location.href = "admin.html";
+        } else {
+          const payload = parseJwt(token);
+          // Đảm bảo chỉ đúng Role Vendor mới được ở lại trang này
+          if (payload && payload.role !== "Vendor") {
+            window.location.href = "admin.html";
+          } else {
+            loadVendorData();
+          }
+        }
+      }
+      window.addEventListener("DOMContentLoaded", checkAuth);
 
       function logout() {
         sessionStorage.removeItem("adminToken");
         window.location.href = "admin.html";
       }
 
-      function loadVendorPOIs() {
+      function loadVendorData() {
+        const token = sessionStorage.getItem("adminToken");
+
+        // 1. Tải danh sách địa điểm và load luôn thực đơn của địa điểm đầu tiên
         fetch("/api/POI/vendor", {
-          headers: {
-            Authorization: "Bearer " + token,
-            "ngrok-skip-browser-warning": "true",
-          },
+          headers: { Authorization: "Bearer " + token },
         })
           .then((res) => res.json())
           .then((data) => {
             const tbody = document.getElementById("poiTableBody");
+            const select = document.getElementById("targetPoiSelect");
             tbody.innerHTML = "";
+            select.innerHTML = "";
             data.forEach((poi) => {
-              tbody.innerHTML += `<tr>
-                    <td>${poi.id}</td>
-                    <td><strong>${poi.name}</strong></td>
-                    <td><span class="badge bg-info text-dark">🎧 ${poi.listenCount} lượt</span></td>
-                </tr>`;
+              let badge =
+                poi.approvalStatus === 1
+                  ? '<span class="badge bg-success">Đã duyệt</span>'
+                  : poi.approvalStatus === 0
+                    ? '<span class="badge bg-warning text-dark">Chờ duyệt</span>'
+                    : '<span class="badge bg-danger">Từ chối</span>';
+              tbody.innerHTML += `<tr><td>${poi.id}</td><td><strong>${poi.name}</strong></td><td>${badge}</td><td><span class="badge bg-info text-dark">🎧 ${poi.listenCount}</span></td></tr>`;
+              if (poi.approvalStatus === 1)
+                select.innerHTML += `<option value="${poi.id}">${poi.name}</option>`;
             });
-          })
-          .catch((err) => console.error(err));
+
+            // LỆNH THỰC THI (CODE THẬT): TỰ ĐỘNG TẢI THỰC ĐƠN SAU KHI CÓ DANH SÁCH QUÁN
+            if (select.options.length > 0) {
+              select.selectedIndex = 0;
+              loadVendorMenus();
+            }
+          });
+
+        // 2. Tải Review
+        fetch("/api/Review/manage", {
+          headers: { Authorization: "Bearer " + token },
+        })
+          .then((res) => res.json())
+          .then((data) => {
+            const tbody = document.getElementById("reviewsTableBody");
+            tbody.innerHTML =
+              data.length === 0
+                ? "<tr><td colspan='3' class='text-center'>Chưa có bình luận.</td></tr>"
+                : data
+                    .map(
+                      (r) =>
+                        `<tr><td><strong>${r.poiName}</strong></td><td class="text-warning">${"⭐".repeat(r.rating)}</td><td>${r.comment || '<i class="text-muted">Không bình luận</i>'}</td></tr>`,
+                    )
+                    .join("");
+          });
       }
 
-      document
-        .getElementById("menuForm")
-        .addEventListener("submit", function (e) {
-          e.preventDefault();
-          const newMenu = {
-            POI_Id: parseInt(document.getElementById("menuPoiId").value),
+      document.getElementById("poiForm").addEventListener("submit", (e) => {
+        e.preventDefault();
+        const token = sessionStorage.getItem("adminToken");
+        fetch("/api/POI", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: "Bearer " + token,
+          },
+          body: JSON.stringify({
+            name: document.getElementById("poiName").value,
+            description: document.getElementById("poiDescVi").value,
+            descriptionEn: "",
+            descriptionZh: "",
+            descriptionKo: "",
+            descriptionJa: "",
+            lat: parseFloat(document.getElementById("poiLat").value),
+            lng: parseFloat(document.getElementById("poiLng").value),
+            radius: parseFloat(document.getElementById("poiRadius").value),
+            priority: parseInt(document.getElementById("poiPriority").value),
+          }),
+        }).then(async (res) => {
+          const data = await res.json();
+          alert(res.ok ? "Đã gửi yêu cầu duyệt!" : data.message);
+          if (res.ok) {
+            e.target.reset();
+            loadVendorData();
+          }
+        });
+      });
+
+      document.getElementById("audioForm").addEventListener("submit", (e) => {
+        e.preventDefault();
+        const token = sessionStorage.getItem("adminToken");
+        const poiId = document.getElementById("targetPoiSelect").value;
+        if (!poiId) return alert("Vui lòng chọn cơ sở đã được duyệt!");
+        const formData = new FormData();
+        formData.append("poiId", poiId);
+        formData.append("language", document.getElementById("audioLang").value);
+        formData.append(
+          "isPremium",
+          document.getElementById("audioPremium").value,
+        );
+        formData.append("file", document.getElementById("audioFile").files[0]);
+
+        fetch("/api/Audio", {
+          method: "POST",
+          headers: { Authorization: "Bearer " + token },
+          body: formData,
+        }).then(async (res) => {
+          const data = await res.json();
+          alert(res.ok ? "Tải âm thanh thành công!" : "Lỗi: " + data.message);
+          if (res.ok) e.target.reset();
+        });
+      });
+
+      document.getElementById("menuForm").addEventListener("submit", (e) => {
+        e.preventDefault();
+        const token = sessionStorage.getItem("adminToken");
+        const poiId = document.getElementById("targetPoiSelect").value;
+        if (!poiId) return alert("Vui lòng chọn cơ sở đã được duyệt!");
+        fetch("/api/Menu", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: "Bearer " + token,
+          },
+          body: JSON.stringify({
+            POI_Id: parseInt(poiId),
             ItemName: document.getElementById("menuItemName").value,
             Price: parseFloat(document.getElementById("menuPrice").value),
             Description: "",
-          };
-          fetch("/api/Menu", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: "Bearer " + token,
-              "ngrok-skip-browser-warning": "true",
-            },
-            body: JSON.stringify(newMenu),
-          }).then((res) => {
-            if (res.ok) {
-              alert("Thêm món ăn thành công!");
-              document.getElementById("menuForm").reset();
+          }),
+        }).then((res) => {
+          if (res.ok) {
+            alert("Thêm món ăn thành công!");
+            e.target.reset();
+          }
+        });
+      });
+
+      function switchTab(tabId) {
+        document
+          .querySelectorAll("#vendorTabs .nav-link")
+          .forEach((el) => el.classList.remove("active"));
+        document
+          .querySelectorAll("#menuTab, #audioTab")
+          .forEach((el) => el.classList.remove("show", "active"));
+        document.querySelector(`[href="#${tabId}"]`).classList.add("active");
+        document.getElementById(tabId).classList.add("show", "active");
+      }
+      function switchRightTab(tabId) {
+        document
+          .querySelectorAll("#rightTabs .nav-link")
+          .forEach((el) => el.classList.remove("active"));
+        document
+          .querySelectorAll("#poiListTab, #vendorReviewsTab")
+          .forEach((el) => el.classList.remove("show", "active"));
+        document.querySelector(`[href="#${tabId}"]`).classList.add("active");
+        document.getElementById(tabId).classList.add("show", "active");
+      }
+      // Lắng nghe sự kiện đổi cơ sở để tải thực đơn tương ứng
+      document
+        .getElementById("targetPoiSelect")
+        .addEventListener("change", loadVendorMenus);
+
+      function loadVendorMenus() {
+        const poiId = document.getElementById("targetPoiSelect").value;
+        const token = sessionStorage.getItem("adminToken");
+        if (!poiId) return;
+
+        fetch(`/api/Menu/poi/${poiId}`, {
+          headers: { Authorization: "Bearer " + token },
+        })
+          .then((res) => res.json())
+          .then((data) => {
+            const tbody = document.getElementById("vendorMenuTableBody");
+            if (data.length === 0) {
+              tbody.innerHTML =
+                '<tr><td colspan="3" class="text-center text-muted">Chưa có món ăn nào.</td></tr>';
             } else {
-              res.text().then((t) => alert("Lỗi: " + t));
+              tbody.innerHTML = data
+                .map(
+                  (m) => `
+                    <tr>
+                        <td class="align-middle">${m.itemName}</td>
+                        <td class="text-danger fw-bold align-middle">${m.price.toLocaleString("vi-VN")}đ</td>
+                        <td><button type="button" onclick="deleteMenu(${m.id})" class="btn btn-sm btn-outline-danger py-0 px-2">&times;</button></td>
+                    </tr>
+                `,
+                )
+                .join("");
             }
           });
-        });
+      }
 
-      window.addEventListener("DOMContentLoaded", loadVendorPOIs);
+      function deleteMenu(id) {
+        if (!confirm("Bạn có chắc chắn muốn xóa món này?")) return;
+        const token = sessionStorage.getItem("adminToken");
+        fetch(`/api/Menu/${id}`, {
+          method: "DELETE",
+          headers: { Authorization: "Bearer " + token },
+        }).then((res) => {
+          if (res.ok) {
+            alert("Xóa thành công!");
+            loadVendorMenus();
+          } else alert("Lỗi khi xóa món ăn!");
+        });
+      }
     </script>
   </body>
 </html>

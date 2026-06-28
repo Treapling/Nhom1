@@ -6,546 +6,1029 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
     />
-    <title>SGU Tour Guide</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Vĩnh Khánh Tour Guide</title>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css"
+      rel="stylesheet"
+    />
     <link
       rel="stylesheet"
       href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
     />
-    <script
-      src="https://unpkg.com/html5-qrcode"
-      type="text/javascript"
-    ></script>
+    <style>
+      html,
+      body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        background-color: #f3f4f6;
+      }
+      .app-container {
+        width: 100%;
+        height: 100vh;
+        background: white;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+        overflow: hidden;
+      }
+    </style>
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css"
+    />
   </head>
   <body
-    class="bg-gray-800 text-gray-900 font-sans antialiased flex items-center justify-center min-h-screen"
+    class="font-sans antialiased text-gray-900 flex flex-col h-screen m-0 p-0"
   >
-    <div
-      id="activation-overlay"
-      class="fixed inset-0 z-[10000] bg-white flex flex-col items-center justify-center px-6 text-center"
-    >
-      <div class="mb-6"><span class="text-6xl">🗺️</span></div>
-      <h2 class="text-3xl font-extrabold text-blue-700 mb-2">SGU Tour Guide</h2>
-      <p class="text-gray-600 mb-8 font-medium">
-        Vui lòng nhập mã chuyến đi để mở khóa bản đồ và trải nghiệm thuyết minh
-        tự động.
-      </p>
-      <input
-        type="text"
-        id="tourCodeInput"
-        placeholder="Nhập mã (VD: SGU2026)"
-        class="w-full max-w-[300px] border-2 border-blue-200 rounded-xl p-4 text-center text-xl font-bold text-blue-800 mb-4 focus:outline-none focus:border-blue-500 uppercase transition-colors"
-      />
-
-      <button
-        onclick="checkTourCode()"
-        class="w-full max-w-[300px] bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl shadow-lg transition-colors text-lg"
+    <div class="app-container">
+      <div
+        id="activation-overlay"
+        class="absolute inset-0 bg-white flex flex-col items-center justify-center px-6 text-center"
+        style="z-index: 10000"
       >
-        Kích Hoạt Ngay
-      </button>
+        <div class="w-full max-w-md flex flex-col items-center">
+          <div class="mb-6"><span class="text-6xl md:text-8xl">🍲</span></div>
+          <h2 class="text-3xl md:text-5xl font-extrabold text-red-600 mb-2">
+            Vĩnh Khánh Tour
+          </h2>
+          <p class="text-gray-600 mb-8 font-medium md:text-xl">
+            Bắt đầu trải nghiệm khám phá ẩm thực tự động ngay bây giờ!
+          </p>
 
-      <div class="mt-4 mb-2">
-        <span class="text-gray-400 font-medium">--- Hoặc ---</span>
+          <button
+            onclick="activateFree()"
+            class="w-full max-w-md bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-4 rounded-xl shadow-sm text-lg md:text-xl mb-4 transition-colors"
+          >
+            Kích Hoạt Miễn Phí
+          </button>
+
+          <div class="mb-4 w-full">
+            <span class="text-gray-400 font-medium">--- Hoặc ---</span>
+          </div>
+
+          <a
+            href="checkout.html"
+            class="w-full max-w-md bg-red-600 hover:bg-red-700 text-white font-bold py-4 rounded-xl shadow-lg text-lg md:text-xl inline-block text-center transition-colors"
+          >
+            ⭐ Mua gói Premium 24h
+          </a>
+        </div>
       </div>
 
-      <a
-        href="checkout.html"
-        class="w-full max-w-[300px] bg-green-500 hover:bg-green-600 text-white font-bold py-4 rounded-xl shadow-lg transition-colors text-lg inline-block text-center"
-      >
-        Mua vé nghe 24h (20.000đ)
-      </a>
-    </div>
-
-    <div
-      class="w-full max-w-[480px] h-screen bg-white shadow-2xl flex flex-col relative overflow-hidden"
-    >
       <header
-        class="bg-blue-600 text-white px-4 py-3 flex justify-between items-center shadow-md z-20"
+        class="bg-red-600 text-white px-3 md:px-6 py-2 md:py-3 flex justify-between items-center shadow-md z-20 flex-shrink-0"
       >
-        <div class="flex flex-col">
-          <h1 class="text-xl font-bold tracking-wide">SGU Tour Guide</h1>
-          <select
-            id="lang-switch"
-            class="bg-blue-800 text-white text-xs rounded mt-1 px-1 py-0.5 outline-none w-[100px] border-none"
-          >
-            <option value="vi">🇻🇳 Tiếng Việt</option>
-            <option value="en">🇬🇧 English</option>
-          </select>
+        <div class="flex flex-col md:flex-row md:items-center gap-1 md:gap-6">
+          <h1 class="text-lg md:text-2xl font-bold tracking-wide" id="ui-title">
+            Vĩnh Khánh Tour
+          </h1>
+          <div class="flex gap-2 items-center mt-1 md:mt-0">
+            <select
+              id="lang-switch"
+              class="bg-red-800 text-white text-xs md:text-sm rounded px-2 py-1 md:py-1.5 outline-none border-none cursor-pointer"
+            >
+              <option value="vi">🇻🇳 Tiếng Việt</option>
+              <option value="en">🇬🇧 English</option>
+              <option value="zh">🇨🇳 中文</option>
+              <option value="ko">🇰🇷 한국어</option>
+              <option value="ja">🇯🇵 日本語</option>
+            </select>
+            <span
+              id="status-badge"
+              class="hidden text-xs md:text-sm font-bold bg-white text-red-700 px-2 py-1 md:py-1.5 rounded shadow-sm"
+            ></span>
+          </div>
         </div>
-        <button
-          id="btn-scan-qr"
-          class="bg-blue-700 hover:bg-blue-800 px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-2"
-        >
-          <span class="text-base">📷</span> Quét QR
-        </button>
+
+        <div class="flex gap-1 md:gap-2 items-center flex-wrap justify-end">
+          <button
+            onclick="showBookmarks()"
+            class="bg-pink-600 hover:bg-pink-700 px-2 py-1.5 md:px-3 rounded text-[10px] md:text-sm font-bold text-white transition shadow-sm"
+          >
+            ❤️ <span class="ui-nav-saved">Đã lưu</span>
+          </button>
+
+          <button
+            onclick="endTour()"
+            class="bg-red-800 hover:bg-red-900 px-2 py-1.5 md:px-3 rounded text-[10px] md:text-sm font-bold text-white transition shadow-sm"
+            id="ui-end"
+          >
+            Kết thúc Tour
+          </button>
+
+          <button
+            id="btn-scan-qr"
+            class="bg-red-700 hover:bg-red-800 px-2 py-1.5 md:px-3 rounded text-[10px] md:text-sm font-bold text-white transition shadow-sm"
+          >
+            📷 <span id="ui-scan">Quét QR</span>
+          </button>
+
+          <button
+            onclick="simulateGPS()"
+            class="bg-yellow-500 hover:bg-yellow-600 px-2 py-1.5 md:px-3 rounded text-[10px] md:text-sm font-bold text-dark transition shadow-sm"
+          >
+            🚶‍♂️ <span id="ui-sim">Đi bộ</span>
+          </button>
+        </div>
       </header>
 
-      <main class="flex-1 relative flex flex-col">
-        <div
-          id="map"
-          class="w-full h-full bg-gray-200 flex items-center justify-center text-gray-500 z-0"
-        >
-          <p>📍 Khu vực hiển thị bản đồ</p>
-        </div>
+      <main
+        class="flex-1 w-full relative flex flex-col md:flex-row overflow-hidden"
+      >
+        <div id="map" class="absolute inset-0 z-0"></div>
 
         <div
           id="poi-card"
-          class="hidden absolute bottom-4 left-4 right-4 bg-white rounded-2xl shadow-xl p-5 border border-gray-100 z-10 max-h-[60vh] overflow-y-auto"
+          class="hidden absolute bottom-0 left-0 right-0 md:top-4 md:bottom-4 md:right-4 md:left-auto md:w-[420px] bg-white rounded-t-2xl md:rounded-2xl shadow-2xl p-4 md:p-5 flex flex-col overflow-hidden z-[1000] max-h-[70vh] md:max-h-full border border-gray-200"
         >
-          <div class="flex justify-between items-start mb-1">
-            <h2 id="poi-name" class="text-xl font-bold text-blue-900 pr-2">
-              Tên địa điểm
+          <div class="flex justify-between items-start mb-2 flex-shrink-0">
+            <h2
+              id="poi-name"
+              class="text-xl md:text-2xl font-bold text-red-700 pr-2"
+            >
+              Đang tải...
             </h2>
             <button
               onclick="toggleBookmark()"
-              class="text-2xl hover:scale-110 transition-transform"
-              title="Lưu yêu thích"
+              class="text-2xl md:text-3xl hover:scale-110"
             >
               ❤️
             </button>
-          </div>
-
-          <p id="poi-desc" class="text-sm text-gray-600 mb-3">Đang tải...</p>
-          <audio
-            id="audio-player"
-            controls
-            class="w-full h-10 outline-none mb-3"
-            style="display: none"
-          ></audio>
-
-          <div
-            id="poi-menu-container"
-            class="mb-4 text-sm bg-blue-50 p-3 rounded-lg hidden"
-          >
-            <h3
-              class="font-bold text-blue-800 mb-2 border-b border-blue-200 pb-1"
+            <button
+              onclick="closePoiCard()"
+              class="text-gray-400 hover:text-red-600 text-2xl font-bold px-2 pb-1 transition leading-none"
             >
-              🍽️ Thực đơn:
-            </h3>
-            <div id="poi-menu-list" class="space-y-1"></div>
+              &times;
+            </button>
           </div>
 
           <div
-            class="p-3 bg-gray-50 rounded-lg border border-gray-200 flex flex-col gap-2"
+            class="flex items-center gap-2 mb-2 md:mb-4 text-[11px] md:text-sm flex-shrink-0 border-b border-gray-100 pb-2"
           >
-            <textarea
-              id="review-comment"
-              rows="2"
-              class="w-full border border-gray-300 p-2 rounded text-sm outline-none focus:border-blue-500"
-              placeholder="Nhập nhận xét của bạn về địa điểm này..."
-            ></textarea>
-            <div class="flex items-center gap-2">
-              <select
-                id="rating-select"
-                class="border border-gray-300 p-1.5 rounded text-sm bg-white flex-1"
+            <button
+              onclick="showReviews()"
+              class="bg-yellow-100 hover:bg-yellow-200 text-yellow-800 font-bold px-2 py-1 md:py-1.5 rounded transition"
+              id="poi-rating"
+            >
+              Đánh giá: 0⭐ (0)
+            </button>
+            <span
+              class="bg-blue-100 text-blue-800 font-bold px-2 py-1 md:py-1.5 rounded"
+              id="poi-listens"
+              >🎧 0 lượt nghe</span
+            >
+            <button
+              onclick="drawRouteToPOI()"
+              class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-3 py-1 md:py-1.5 rounded transition ml-auto flex items-center gap-1 shadow-sm"
+            >
+              🧭 <span id="ui-route">Dẫn đường</span>
+            </button>
+          </div>
+
+          <div class="overflow-y-auto pr-2 flex-1">
+            <p
+              id="poi-desc"
+              class="text-sm md:text-base text-gray-700 mb-3 md:mb-5"
+            >
+              ...
+            </p>
+
+            <div
+              class="bg-gray-50 p-2 md:p-3 rounded-lg mb-3 md:mb-5 border border-gray-200 text-center"
+            >
+              <span
+                id="audio-error"
+                class="text-xs md:text-sm text-red-500 font-bold hidden"
+                >❌ Chưa có bản thu âm cho ngôn ngữ này!</span
               >
-                <option value="5">⭐⭐⭐⭐⭐</option>
-                <option value="4">⭐⭐⭐⭐</option>
-                <option value="3">⭐⭐⭐</option>
-                <option value="2">⭐⭐</option>
-                <option value="1">⭐</option>
-              </select>
-              <button
-                onclick="submitReview()"
-                class="bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded-lg text-sm font-bold transition-colors"
+              <audio
+                id="audio-player"
+                controls
+                class="w-full h-10 md:h-12 outline-none"
+                style="display: none"
+              ></audio>
+            </div>
+
+            <div id="poi-menu-container" class="hidden mt-4">
+              <h4
+                id="ui-menu-title"
+                class="font-bold text-gray-800 border-b-2 border-red-500 inline-block mb-2"
               >
-                Gửi Đánh Giá
-              </button>
+                🍽️ Thực đơn:
+              </h4>
+              <div id="poi-menu-list" class="flex flex-col gap-1 mt-2"></div>
+            </div>
+
+            <div
+              class="p-3 bg-gray-50 rounded-xl border border-gray-200 flex flex-col gap-2 mt-2"
+            >
+              <textarea
+                id="review-comment"
+                rows="3"
+                class="w-full border border-gray-300 p-2 md:p-3 rounded-lg text-sm md:text-base outline-none hidden"
+                placeholder="Nhận xét của bạn..."
+              ></textarea>
+              <div class="flex items-center gap-2 mt-1">
+                <select
+                  id="rating-select"
+                  class="border border-gray-300 p-1.5 md:p-2 rounded-lg text-sm md:text-base bg-white flex-1 outline-none"
+                >
+                  <option value="5">⭐⭐⭐⭐⭐ 5/5</option>
+                  <option value="4">⭐⭐⭐⭐ 4/5</option>
+                  <option value="3">⭐⭐⭐ 3/5</option>
+                  <option value="2">⭐⭐ 2/5</option>
+                  <option value="1">⭐ 1/5</option>
+                </select>
+                <button
+                  onclick="submitReview()"
+                  class="bg-red-600 hover:bg-red-700 text-white px-4 md:px-5 py-1.5 md:py-2 rounded-lg text-sm md:text-base font-bold"
+                  id="ui-send"
+                >
+                  Gửi
+                </button>
+              </div>
             </div>
           </div>
         </div>
+        <button
+          id="mini-reopen-btn"
+          onclick="reopenPoiCard()"
+          class="hidden fixed bottom-24 left-1/2 transform -translate-x-1/2 bg-red-600 hover:bg-red-700 text-white px-5 py-2.5 rounded-full shadow-[0_4px_10px_rgba(0,0,0,0.3)] font-bold z-[1000] flex items-center gap-2 transition-all"
+        >
+          📜 <span id="ui-reopen">Xem lại thông tin</span>
+        </button>
       </main>
 
-      <footer class="bg-white border-t border-gray-200 flex h-16 z-20">
-        <button
-          class="flex-1 flex flex-col items-center justify-center text-blue-600"
-        >
-          <span class="text-xs font-semibold">📍 Bản đồ</span>
-        </button>
-        <button
-          onclick="showBookmarks()"
-          class="flex-1 flex flex-col items-center justify-center text-gray-500"
-        >
-          <span class="text-xs font-medium">❤️ Đã lưu</span>
-        </button>
-        <button
-          onclick="alert('Tính năng đang phát triển')"
-          class="flex-1 flex flex-col items-center justify-center text-gray-500"
-        >
-          <span class="text-xs font-medium">⚙️ Cài đặt</span>
-        </button>
-      </footer>
-    </div>
-
-    <div
-      id="qr-modal"
-      class="hidden fixed inset-0 z-[9999] bg-black/80 flex items-center justify-center p-4"
-    >
       <div
-        class="bg-white w-full max-w-[400px] rounded-2xl overflow-hidden shadow-2xl flex flex-col"
+        id="qr-modal"
+        class="hidden absolute inset-0 flex items-center justify-center p-4 bg-black bg-opacity-90"
+        style="z-index: 10000"
       >
         <div
-          class="bg-blue-600 px-4 py-3 text-white text-center font-bold text-lg"
+          class="bg-white w-full max-w-md rounded-xl overflow-hidden flex flex-col"
         >
-          Quét mã QR Địa điểm
-        </div>
-        <div class="p-4 bg-gray-50 flex-1">
           <div
-            id="qr-reader"
-            class="w-full rounded-lg overflow-hidden border-2 border-dashed border-blue-400"
-          ></div>
-        </div>
-        <div class="p-4 bg-white border-t border-gray-100">
+            class="p-0 bg-black flex-1 flex items-center justify-center min-h-[300px]"
+          >
+            <div id="qr-reader" class="w-full"></div>
+          </div>
           <button
             id="btn-close-qr"
-            class="w-full bg-red-500 hover:bg-red-600 text-white py-3 rounded-xl font-semibold"
+            class="w-full bg-gray-600 hover:bg-gray-700 text-white py-4 font-bold text-sm md:text-base transition"
           >
             Đóng Camera
           </button>
         </div>
       </div>
-    </div>
-    <div
-      id="bookmark-modal"
-      class="hidden fixed inset-0 z-[9999] bg-black/80 flex items-center justify-center p-4"
-    >
+
       <div
-        class="bg-white w-full max-w-[400px] rounded-2xl overflow-hidden shadow-2xl flex flex-col max-h-[80vh]"
+        id="bookmark-modal"
+        class="hidden absolute inset-0 flex items-center justify-center p-4 bg-black bg-opacity-70"
+        style="z-index: 10000"
       >
         <div
-          class="bg-pink-600 px-4 py-3 text-white text-center font-bold text-lg flex justify-between items-center"
+          class="bg-white w-full max-w-md rounded-xl overflow-hidden flex flex-col max-h-[80vh]"
         >
-          <span>❤️ Địa điểm đã lưu</span>
-          <button
-            onclick="
-              document.getElementById('bookmark-modal').classList.add('hidden')
-            "
-            class="text-white text-2xl leading-none"
+          <div
+            class="bg-red-600 px-4 md:px-5 py-3 text-white flex justify-between items-center"
           >
-            &times;
-          </button>
+            <span class="font-bold text-base md:text-lg" id="ui-modal-saved"
+              >❤️ Đã lưu</span
+            ><button
+              onclick="
+                document
+                  .getElementById('bookmark-modal')
+                  .classList.add('hidden')
+              "
+              class="text-white text-2xl font-bold hover:text-gray-200"
+            >
+              &times;
+            </button>
+          </div>
+          <div class="p-3 bg-gray-100 border-b border-gray-200">
+            <input
+              type="text"
+              id="bookmarkSearch"
+              onkeyup="searchBookmarks()"
+              class="w-full p-2 md:p-3 rounded text-sm md:text-base outline-none"
+              placeholder="🔍 Tìm địa điểm..."
+            />
+          </div>
+          <div class="p-0 overflow-y-auto flex-1 bg-gray-50">
+            <ul id="bookmark-list" class="divide-y divide-gray-100"></ul>
+          </div>
         </div>
-        <div class="p-4 overflow-y-auto flex-1">
-          <ul id="bookmark-list" class="divide-y divide-gray-200"></ul>
+      </div>
+
+      <div
+        id="reviews-modal"
+        class="hidden absolute inset-0 flex items-center justify-center p-4 bg-black bg-opacity-70"
+        style="z-index: 10000"
+      >
+        <div
+          class="bg-white w-full max-w-lg rounded-xl overflow-hidden flex flex-col max-h-[80vh]"
+        >
+          <div
+            class="bg-yellow-500 px-4 md:px-5 py-3 text-gray-900 flex justify-between items-center shadow-sm"
+          >
+            <span class="font-bold text-base md:text-lg" id="ui-modal-reviews"
+              >⭐ Đánh giá Khách hàng</span
+            ><button
+              onclick="
+                document.getElementById('reviews-modal').classList.add('hidden')
+              "
+              class="text-2xl font-bold hover:text-gray-700"
+            >
+              &times;
+            </button>
+          </div>
+          <div
+            class="p-0 overflow-y-auto flex-1 bg-gray-50"
+            id="reviews-list-container"
+          ></div>
         </div>
       </div>
     </div>
+
+    <script
+      src="https://unpkg.com/html5-qrcode"
+      type="text/javascript"
+    ></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
+    <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
     <script>
-      let currentPoiId = null;
-      let currentPoiName = "";
-      let currentPoiData = null;
-
-      // 1. Kiểm tra trạng thái kích hoạt Tour
-      document.addEventListener("DOMContentLoaded", () => {
-        if (localStorage.getItem("isTourActivated") === "true") {
-          document.getElementById("activation-overlay").classList.add("hidden");
-        }
-      });
-
-      function checkTourCode() {
-        const codeInput = document
-          .getElementById("tourCodeInput")
-          .value.trim()
-          .toUpperCase();
-        if (codeInput === "SGU2026") {
-          fetch("/api/Auth/guest-token", {
-            method: "POST",
-            headers: { "ngrok-skip-browser-warning": "true" },
-          })
-            .then((res) => res.json())
-            .then((data) => {
-              localStorage.setItem("guestToken", data.token);
-              localStorage.setItem("isTourActivated", "true");
-              document
-                .getElementById("activation-overlay")
-                .classList.add("hidden");
-              setTimeout(() => {
-                if (typeof map !== "undefined") map.invalidateSize();
-              }, 500);
-            })
-            .catch((err) => alert("Lỗi mạng"));
-        } else {
-          alert("Mã không hợp lệ.");
+      function parseJwt(token) {
+        try {
+          return JSON.parse(
+            decodeURIComponent(
+              window
+                .atob(token.split(".")[1])
+                .split("")
+                .map(
+                  (c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2),
+                )
+                .join(""),
+            ),
+          );
+        } catch (e) {
+          return null;
         }
       }
 
-      // 2. Khởi tạo Bản đồ Leaflet
-      const map = L.map("map").setView([10.76, 106.6822], 16);
+      // ĐÃ SỬA: BỔ SUNG ĐẦY ĐỦ DẤU PHẨY
+      const dict = {
+        vi: {
+          reopen: "Xem thông tin quán",
+          map: "Bản đồ",
+          saved: "Đã lưu",
+          menu: "🍽️ Thực đơn:",
+          scan: "Quét QR",
+          route: "Dẫn đường",
+          send: "Gửi",
+          sim: "Đi bộ",
+          savedTitle: "❤️ Đã lưu",
+          req: "Nhận xét của bạn...",
+          end: "Kết thúc Tour",
+          errAudio: "❌ Chưa có bản thu âm cho ngôn ngữ này!",
+          rating: "Đánh giá",
+          listen: "lượt nghe",
+          reviews: "⭐ Đánh giá Khách hàng",
+          expiredPrem: "Đã hết thời gian gói Premium!",
+          searchPlaceholder: "🔍 Tìm địa điểm...",
+          empty: "Trống.",
+          delete: "Xóa",
+          alreadySaved: "Đã có trong danh sách lưu.",
+          savedSuccess: "Đã lưu thành công!!",
+        },
+        en: {
+          reopen: "View POI Info",
+          map: "Map",
+          saved: "Saved",
+          menu: "🍽️ Menu:",
+          scan: "Scan QR",
+          route: "Navigate",
+          send: "Send",
+          sim: "Walk",
+          savedTitle: "❤️ Saved",
+          req: "Your review...",
+          end: "End Tour",
+          errAudio: "❌ No audio available for this language!",
+          rating: "Rating",
+          listen: "listens",
+          reviews: "⭐ Customer Reviews",
+          expiredPrem: "Premium package expired!",
+          searchPlaceholder: "🔍 Search places...",
+          empty: "Empty.",
+          delete: "Delete",
+          alreadySaved: "Already in saved list.",
+          savedSuccess: "Saved successfully!!",
+        },
+        zh: {
+          reopen: "查看景点信息",
+          map: "地图",
+          saved: "已保存",
+          menu: "🍽️ 菜单:",
+          scan: "扫码",
+          route: "导航",
+          send: "发送",
+          sim: "步行",
+          savedTitle: "❤️ 已保存",
+          req: "你的评论...",
+          end: "结束游览",
+          errAudio: "❌ 暂无该语言的录音！",
+          rating: "评分",
+          listen: "次收听",
+          reviews: "⭐ 客户评价",
+          expiredPrem: "高级套餐已过期！",
+          searchPlaceholder: "🔍 搜索地点...",
+          empty: "空的。",
+          delete: "删除",
+          alreadySaved: "该地点已在您的保存列表中。",
+          savedSuccess: "已添加到您的保存列表！！",
+        },
+        ko: {
+          reopen: "POI 정보 보기",
+          map: "지도",
+          saved: "저장됨",
+          menu: "🍽️ 메뉴:",
+          scan: "QR 스캔",
+          route: "길 찾기",
+          send: "보내기",
+          sim: "걷다",
+          savedTitle: "❤️ 저장됨",
+          req: "귀하의 리뷰...",
+          end: "투어 종료",
+          errAudio: "❌ 이 언어에 대한 오디오가 없습니다!",
+          rating: "평점",
+          listen: "회 청취",
+          reviews: "⭐ 고객 리뷰",
+          expiredPrem: "프리미엄 패키지 만료!",
+          searchPlaceholder: "🔍 장소 검색...",
+          empty: "비어 있음.",
+          delete: "삭제",
+          alreadySaved: "이 장소는 이미 저장된 목록에 있습니다.",
+          savedSuccess: "저장된 장소에 추가되었습니다!!",
+        },
+        ja: {
+          reopen: "POI情報を見る",
+          map: "地図",
+          saved: "保存済",
+          menu: "🍽️ メニュー:",
+          scan: "スキャン",
+          route: "ナビゲート",
+          send: "送信",
+          sim: "歩く",
+          savedTitle: "❤️ 保存済",
+          req: "あなたのレビュー...",
+          end: "ツアー終了",
+          errAudio: "❌ この言語の音声はありません！",
+          rating: "評価",
+          listen: "回再生",
+          reviews: "⭐ カスタマーレビュー",
+          expiredPrem: "プレミアム有効期限切れ！",
+          searchPlaceholder: "🔍 場所を検索...",
+          empty: "空です。",
+          delete: "削除",
+          alreadySaved: "保存リストにあります。",
+          savedSuccess: "保存済み!!",
+        },
+      };
+
+      let currentRole = null,
+        currentPoiId = null,
+        currentPoiName = "",
+        currentPoiData = null,
+        timerInterval = null;
+
+      let routingControl = null;
+      let destMarker = null;
+
+      let isAudioUnlocked = false;
+      function unlockAudioContext() {
+        if (isAudioUnlocked) return;
+        const player = document.getElementById("audio-player");
+        player.src =
+          "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=";
+        player
+          .play()
+          .then(() => {
+            player.pause();
+            isAudioUnlocked = true;
+          })
+          .catch(() => {});
+      }
+      document.body.addEventListener("click", unlockAudioContext);
+      document.body.addEventListener("touchstart", unlockAudioContext);
+
+      // DỊCH TỰ ĐỘNG BẰNG GOOGLE TRANSLATE
+      async function translateText(text, targetLang) {
+        if (!text || targetLang === "vi") return text;
+        try {
+          const res = await fetch(
+            `https://translate.googleapis.com/translate_a/single?client=gtx&sl=vi&tl=${targetLang}&dt=t&q=${encodeURIComponent(text)}`,
+          );
+          const data = await res.json();
+          return data[0].map((x) => x[0]).join("");
+        } catch (e) {
+          console.error("Lỗi dịch:", e);
+          return text;
+        }
+      }
+
+      // QUY ĐỔI TIỀN TỆ
+      function getCurrencyDisplay(vndPrice, lang) {
+        if (lang === "vi") return "";
+        const rates = {
+          en: { rate: 25400, symbol: "$", isPrefix: true },
+          zh: { rate: 3500, symbol: "¥", isPrefix: true },
+          ja: { rate: 165, symbol: "¥", isPrefix: true },
+          ko: { rate: 18.5, symbol: "₩", isPrefix: false },
+        };
+        const c = rates[lang];
+        if (!c) return "";
+        const converted = (vndPrice / c.rate).toFixed(1);
+        return c.isPrefix
+          ? `(≈ ${c.symbol}${converted})`
+          : `(≈ ${converted}${c.symbol})`;
+      }
+
+      function updateUITexts(lang) {
+        const t = dict[lang] || dict["vi"];
+        if (document.getElementById("ui-nav-map"))
+          document.getElementById("ui-nav-map").innerText = t.map;
+        document
+          .querySelectorAll(".ui-nav-saved, .class-ui-nav-saved")
+          .forEach((el) => (el.innerText = t.saved));
+        document.getElementById("ui-menu-title").innerText = t.menu;
+        document.getElementById("ui-scan").innerText = t.scan;
+        document.getElementById("ui-send").innerText = t.send;
+        document.getElementById("ui-sim").innerText = t.sim;
+        document.getElementById("ui-end").innerText = t.end;
+
+        if (document.getElementById("ui-route"))
+          document.getElementById("ui-route").innerText = t.route;
+        if (document.getElementById("ui-reopen"))
+          document.getElementById("ui-reopen").innerText = t.reopen;
+
+        document.getElementById("ui-modal-saved").innerText = t.savedTitle;
+        document.getElementById("ui-modal-reviews").innerText = t.reviews;
+        document.getElementById("audio-error").innerText = t.errAudio;
+        document.getElementById("review-comment").placeholder = t.req;
+        document.getElementById("bookmarkSearch").placeholder =
+          t.searchPlaceholder;
+
+        if (currentPoiData) {
+          document.getElementById("poi-rating").innerText =
+            `${t.rating}: ${currentPoiData.ratingAvg}⭐ (${currentPoiData.ratingTotalCount})`;
+          document.getElementById("poi-listens").innerText =
+            `🎧 ${currentPoiData.listenCount} ${t.listen}`;
+        }
+        renderBookmarkList(
+          JSON.parse(localStorage.getItem("bookmarkedPOIs")) || [],
+        );
+      }
+
+      document
+        .getElementById("lang-switch")
+        .addEventListener("change", function () {
+          updateUITexts(this.value);
+          if (currentPoiData) {
+            renderPoiCard(currentPoiData);
+          }
+        });
+
+      document.addEventListener("DOMContentLoaded", () => {
+        const token = localStorage.getItem("guestToken");
+        if (token) {
+          document.getElementById("activation-overlay").classList.add("hidden");
+          const jwt = parseJwt(token);
+          currentRole = jwt.role;
+          setupRoleFeatures(jwt);
+          setTimeout(() => {
+            if (typeof map !== "undefined") map.invalidateSize();
+          }, 500);
+        }
+      });
+
+      function activateFree() {
+        fetch("/api/Auth/guest-free", { method: "POST" })
+          .then((r) => r.json())
+          .then((data) => {
+            localStorage.setItem("guestToken", data.token);
+            window.location.reload();
+          });
+      }
+
+      function endTour() {
+        localStorage.clear();
+        window.location.reload();
+      }
+
+      function setupRoleFeatures(jwt) {
+        const badge = document.getElementById("status-badge");
+        const t =
+          dict[document.getElementById("lang-switch").value] || dict["vi"];
+
+        if (currentRole === "GuestPremium") {
+          badge.classList.remove("hidden");
+          document.getElementById("review-comment").classList.remove("hidden");
+
+          timerInterval = setInterval(() => {
+            let now = Math.floor(Date.now() / 1000);
+            let diff = jwt.exp - now;
+            if (diff <= 0) {
+              clearInterval(timerInterval);
+              alert(t.expiredPrem);
+              endTour();
+            } else {
+              let h = Math.floor(diff / 3600);
+              let m = Math.floor((diff % 3600) / 60);
+              badge.innerText = `⏳ ${h}h ${m}m`;
+            }
+          }, 1000);
+        } else {
+          badge.classList.add("hidden");
+        }
+      }
+
+      const vinhKhanhCenter = [10.7619316, 106.7019412];
+      const map = L.map("map", { zoomControl: false }).setView(
+        vinhKhanhCenter,
+        17,
+      );
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(
         map,
       );
       setTimeout(() => map.invalidateSize(), 500);
-      let userMarker = L.marker([10.76, 106.6822])
+      let userMarker = L.marker(vinhKhanhCenter)
         .addTo(map)
         .bindPopup("Vị trí của bạn")
         .openPopup();
 
-      // 3. Xử lý Geofencing (GPS)
-      if ("geolocation" in navigator) {
-        let lastCheckTime = 0;
-        let lastPlayedPoiId = null;
+      const vkPath = [
+        [10.7619316, 106.7019412],
+        [10.7617852, 106.7021558],
+        [10.7616287, 106.702367],
+        [10.761494, 106.7025856],
+        [10.7612747, 106.7027786],
+        [10.7610791, 106.7029963],
+        [10.7609054, 106.7032261],
+        [10.7607134, 106.7034474],
+        [10.7605669, 106.7037068],
+        [10.7605815, 106.7040004],
+        [10.7606934, 106.7042746],
+        [10.7608311, 106.7045403],
+        [10.7609803, 106.7048024],
+        [10.7611314, 106.7050905],
+        [10.7612405, 106.7053693],
+        [10.7612788, 106.7056703],
+        [10.7612214, 106.7059333],
+        [10.7610831, 106.7061797],
+        [10.7609412, 106.706427],
+        [10.7608033, 106.7066794],
+      ];
+      let simIndex = 0,
+        lastCheckTime = 0,
+        lastPlayedPoiId = null;
 
-        navigator.geolocation.watchPosition(
-          function (position) {
-            const lat = position.coords.latitude;
-            const lng = position.coords.longitude;
-            const newLatLng = new L.LatLng(lat, lng);
-            userMarker.setLatLng(newLatLng);
-            map.panTo(newLatLng);
+      function simulateGPS() {
+        unlockAudioContext();
+        if (simIndex >= vkPath.length) simIndex = 0;
+        const pos = vkPath[simIndex];
+        const newLatLng = new L.LatLng(pos[0], pos[1]);
+        userMarker.setLatLng(newLatLng);
+        map.panTo(newLatLng);
+        simIndex++;
 
-            if (Date.now() - lastCheckTime > 5000) {
-              lastCheckTime = Date.now();
-
-              // BƯỚC 1: Kiểm tra xem có đang đứng trong vùng an toàn (bán kính) không
-              fetch(`/api/location/check?lat=${lat}&lng=${lng}`, {
-                headers: {
-                  "ngrok-skip-browser-warning": "true",
-                  Authorization: "Bearer " + localStorage.getItem("guestToken"),
-                },
-              })
-                .then((response) => response.json())
-                .then((data) => {
-                  if (
-                    data.triggered === true &&
-                    data.poi.id !== lastPlayedPoiId
-                  ) {
-                    lastPlayedPoiId = data.poi.id;
-
-                    // BƯỚC 2: Gọi API lấy chi tiết để có mô tả (description) phục vụ AI Dịch Thuật
-                    fetch(`/api/POI/${data.poi.id}`, {
-                      headers: {
-                        "ngrok-skip-browser-warning": "true",
-                        Authorization:
-                          "Bearer " + localStorage.getItem("guestToken"),
-                      },
-                    })
-                      .then((res) => res.json())
-                      .then((fullPoiInfo) => {
-                        renderPoiCard(fullPoiInfo);
-                      });
-                  }
-                })
-                .catch((err) => console.error("Lỗi GPS API: ", err));
-            }
-          },
-          (err) => console.warn(`Lỗi GPS: ${err.message}`),
-          { enableHighAccuracy: true, maximumAge: 0, timeout: 5000 },
-        );
-      }
-
-      // 4. Xử lý Thực đơn (Menu)
-      function fetchAndRenderMenu(poiId) {
-        const menuContainer = document.getElementById("poi-menu-container");
-        const menuList = document.getElementById("poi-menu-list");
-
-        fetch(`/api/Menu/poi/${poiId}`, {
-          headers: {
-            Authorization: "Bearer " + localStorage.getItem("guestToken"),
-            "ngrok-skip-browser-warning": "true",
-          },
-        })
-          .then((res) => res.json())
-          .then((menus) => {
-            if (menus && menus.length > 0) {
-              menuList.innerHTML = menus
-                .map(
-                  (m) =>
-                    `<div class="flex justify-between border-b border-blue-100 py-1"><span class="text-gray-800">${m.itemName}</span><span class="font-bold text-pink-600">${m.price.toLocaleString("vi-VN")}đ</span></div>`,
-                )
-                .join("");
-              menuContainer.classList.remove("hidden");
-            } else {
-              menuContainer.classList.add("hidden");
-            }
-          })
-          .catch((err) => menuContainer.classList.add("hidden"));
-      }
-
-      // 5. HÀM DỊCH TỰ ĐỘNG VÀ ĐỌC AI (Google Translate API)
-      async function translateAndSpeak(originalText, targetLang) {
-        if (!("speechSynthesis" in window)) return;
-        window.speechSynthesis.cancel(); // Tắt giọng đọc cũ
-
-        let textToSpeak = originalText;
-        const descElement = document.getElementById("poi-desc");
-        descElement.innerText = "Đang dịch tự động...";
-
-        if (targetLang !== "vi") {
-          try {
-            const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=vi&tl=${targetLang}&dt=t&q=${encodeURIComponent(originalText)}`;
-            const res = await fetch(url);
-            const data = await res.json();
-            textToSpeak = data[0].map((item) => item[0]).join("");
-          } catch (error) {
-            console.error("Lỗi dịch thuật:", error);
-            textToSpeak =
-              "Sorry, translation service is temporarily unavailable.";
-          }
+        if (routingControl && currentPoiData) {
+          routingControl.setWaypoints([
+            newLatLng,
+            L.latLng(currentPoiData.lat, currentPoiData.lng),
+          ]);
         }
 
-        descElement.innerText = textToSpeak;
-
-        const utterance = new SpeechSynthesisUtterance(textToSpeak);
-        utterance.lang = targetLang === "vi" ? "vi-VN" : "en-US";
-        utterance.rate = 0.9;
-        window.speechSynthesis.speak(utterance);
+        if (Date.now() - lastCheckTime > 4000) {
+          lastCheckTime = Date.now();
+          fetch(`/api/location/check?lat=${pos[0]}&lng=${pos[1]}`, {
+            headers: {
+              Authorization: "Bearer " + localStorage.getItem("guestToken"),
+            },
+          })
+            .then((r) => r.json())
+            .then((data) => {
+              if (data.triggered === true && data.poi.id !== lastPlayedPoiId) {
+                lastPlayedPoiId = data.poi.id;
+                fetchPOIAndRender(data.poi.id);
+              }
+            })
+            .catch(() => {});
+        }
       }
 
-      // 6. Hiển thị thông tin địa điểm
-      function renderPoiCard(poiInfo) {
+      function drawRouteToPOI() {
+        if (!currentPoiData || !userMarker) {
+          alert("Đang xác định vị trí, vui lòng chờ...");
+          return;
+        }
+
+        const userPos = userMarker.getLatLng();
+        const destPos = L.latLng(currentPoiData.lat, currentPoiData.lng);
+
+        if (routingControl != null) map.removeControl(routingControl);
+        if (destMarker != null) map.removeLayer(destMarker);
+
+        destMarker = L.marker(destPos).addTo(map);
+
+        routingControl = L.Routing.control({
+          waypoints: [userPos, destPos],
+          routeWhileDragging: false,
+          addWaypoints: false,
+          show: false,
+          lineOptions: {
+            styles: [{ color: "#2563eb", opacity: 0.8, weight: 6 }],
+          },
+          createMarker: function () {
+            return null;
+          },
+        }).addTo(map);
+
+        routingControl.on("routesfound", function (e) {
+          const distanceMeters = e.routes[0].summary.totalDistance;
+          const distText =
+            distanceMeters >= 1000
+              ? (distanceMeters / 1000).toFixed(2) + " km"
+              : Math.round(distanceMeters) + " m";
+
+          destMarker
+            .bindPopup(
+              `
+                <div style="text-align: center; min-width: 120px;">
+                    <strong style="color: #dc2626; font-size: 14px;">${currentPoiData.name}</strong><br/>
+                    <span style="font-size: 13px; color: #374151;">Đường đi: <b style="color: #15803d;">${distText}</b></span>
+                </div>
+            `,
+            )
+            .openPopup();
+        });
+
+        map.fitBounds(L.latLngBounds(userPos, destPos), { padding: [50, 50] });
+      }
+
+      function fetchPOIAndRender(poiId) {
+        fetch(`/api/POI/${poiId}`, {
+          headers: {
+            Authorization: "Bearer " + localStorage.getItem("guestToken"),
+          },
+        }).then(async (res) => {
+          const data = await res.json();
+          if (!res.ok) return;
+
+          if (routingControl != null && currentPoiId !== poiId) {
+            map.removeControl(routingControl);
+            if (destMarker != null) map.removeLayer(destMarker);
+            routingControl = null;
+            destMarker = null;
+          }
+
+          renderPoiCard(data);
+        });
+      }
+
+      async function renderPoiCard(poiInfo) {
         currentPoiId = poiInfo.id;
         currentPoiName = poiInfo.name;
         currentPoiData = poiInfo;
 
         document.getElementById("poi-card").classList.remove("hidden");
-        document.getElementById("poi-name").innerText = poiInfo.name;
+        document.getElementById("mini-reopen-btn").classList.add("hidden");
 
-        fetchAndRenderMenu(poiInfo.id);
+        const lang = document.getElementById("lang-switch").value;
 
-        const selectedLang = document.getElementById("lang-switch").value;
-        translateAndSpeak(poiInfo.description, selectedLang);
+        document.getElementById("poi-name").innerText =
+          "Đang dịch / Translating...";
+        document.getElementById("poi-name").innerText = await translateText(
+          poiInfo.name,
+          lang,
+        );
+
+        updateUITexts(lang);
+
+        const fallbackDesc =
+          poiInfo.descriptions && poiInfo.descriptions["vi"]
+            ? poiInfo.descriptions["vi"]
+            : poiInfo.description;
+        document.getElementById("poi-desc").innerText =
+          "Đang dịch mô tả / Translating description...";
+        document.getElementById("poi-desc").innerText = await translateText(
+          fallbackDesc,
+          lang,
+        );
+
+        fetchAndRenderMenu(poiInfo.id, lang);
+        playAudioForRole(lang);
+      }
+
+      function playAudioForRole(lang) {
+        const player = document.getElementById("audio-player"),
+          err = document.getElementById("audio-error");
+        player.pause();
+        if (currentPoiData && currentPoiData.audios) {
+          let audioList = currentPoiData.audios.filter(
+            (a) => a.language === lang,
+          );
+          let matched =
+            currentRole === "GuestPremium"
+              ? audioList.find((a) => a.isPremium) ||
+                audioList.find((a) => !a.isPremium)
+              : audioList.find((a) => !a.isPremium);
+
+          if (matched) {
+            player.src = matched.filePath;
+            player.style.display = "block";
+            err.classList.add("hidden");
+            player.play().catch((e) => console.log("Autoplay bị chặn:", e));
+          } else {
+            player.style.display = "none";
+            err.classList.remove("hidden");
+          }
+        }
+      }
+
+      function fetchAndRenderMenu(poiId, lang) {
+        const container = document.getElementById("poi-menu-container"),
+          list = document.getElementById("poi-menu-list");
+
+        list.innerHTML =
+          "<p class='text-gray-500 text-sm italic'>Đang dịch thực đơn / Translating menu...</p>";
+        container.classList.remove("hidden");
+
+        fetch(`/api/Menu/poi/${poiId}`, {
+          headers: {
+            Authorization: "Bearer " + localStorage.getItem("guestToken"),
+          },
+        })
+          .then((r) => r.json())
+          .then(async (menus) => {
+            if (menus.length > 0) {
+              let menuHtml = "";
+              for (let m of menus) {
+                let translatedName = await translateText(m.itemName, lang);
+                let currencyStr = getCurrencyDisplay(m.price, lang);
+
+                menuHtml += `
+                        <div class="flex justify-between items-center py-2 md:py-3 border-b border-red-100 last:border-0">
+                            <span class="md:text-lg text-gray-800 font-medium">${translatedName}</span>
+                            <div class="text-right">
+                                <span class="font-bold text-red-600 md:text-lg block leading-none">${m.price.toLocaleString("vi-VN")}đ</span>
+                                <span class="text-xs text-gray-400 fw-bold">${currencyStr}</span>
+                            </div>
+                        </div>`;
+              }
+              list.innerHTML = menuHtml;
+            } else {
+              container.classList.add("hidden");
+            }
+          });
       }
 
       function submitReview() {
         if (!currentPoiId) return;
-        const rating = document.getElementById("rating-select").value;
-        const comment = document.getElementById("review-comment").value; // Lấy dữ liệu văn bản
-        const token = localStorage.getItem("guestToken");
-
         fetch("/api/Review", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: "Bearer " + token,
-            "ngrok-skip-browser-warning": "true",
+            Authorization: "Bearer " + localStorage.getItem("guestToken"),
           },
           body: JSON.stringify({
             POI_Id: currentPoiId,
-            Rating: parseInt(rating),
-            Comment: comment || "Đánh giá từ App", // Nếu khách bỏ trống, dùng mặc định
+            Rating: parseInt(document.getElementById("rating-select").value),
+            Comment: document.getElementById("review-comment").value,
           }),
         }).then((res) => {
           if (res.ok) {
-            alert("Cảm ơn bạn! Đã gửi đánh giá " + rating + " sao.");
-            document.getElementById("review-comment").value = ""; // Xóa form sau khi gửi
+            alert("Gửi thành công!");
+            document.getElementById("review-comment").value = "";
+            fetchPOIAndRender(currentPoiId);
           }
         });
+      }
+
+      function showReviews() {
+        if (currentRole !== "GuestPremium") {
+          alert("Chỉ thành viên Premium mới có thể xem bình luận chi tiết!");
+          return;
+        }
+        document.getElementById("reviews-modal").classList.remove("hidden");
+        fetch(`/api/Review/poi/${currentPoiId}`, {
+          headers: {
+            Authorization: "Bearer " + localStorage.getItem("guestToken"),
+          },
+        })
+          .then((r) => r.json())
+          .then((data) => {
+            const list = document.getElementById("reviews-list-container");
+            if (data.length === 0)
+              list.innerHTML =
+                "<p class='p-4 md:p-6 text-center text-gray-500 md:text-lg'>Chưa có bình luận nào.</p>";
+            else
+              list.innerHTML = data
+                .map(
+                  (r) =>
+                    `<div class="p-3 md:p-4 border-b border-gray-200"><span class="font-bold text-yellow-600 md:text-lg">${"⭐".repeat(r.rating)}</span><p class="text-sm md:text-base mt-1 text-gray-800">"${r.comment}"</p><small class="text-xs md:text-sm text-gray-400 mt-2 block">${new Date(r.createdAt).toLocaleDateString("vi-VN")}</small></div>`,
+                )
+                .join("");
+          });
       }
 
       function toggleBookmark() {
-        if (!currentPoiId) return;
-        let bookmarks =
-          JSON.parse(localStorage.getItem("bookmarkedPOIs")) || [];
-        const index = bookmarks.findIndex((b) => b.id === currentPoiId);
-        if (index === -1) {
-          bookmarks.push({ id: currentPoiId, name: currentPoiName });
-          alert("Đã lưu vào danh sách yêu thích!");
-        } else {
-          bookmarks.splice(index, 1);
-          alert("Đã xóa khỏi danh sách yêu thích.");
-        }
-        localStorage.setItem("bookmarkedPOIs", JSON.stringify(bookmarks));
+        const t =
+          dict[document.getElementById("lang-switch").value] || dict["vi"];
+        let b = JSON.parse(localStorage.getItem("bookmarkedPOIs")) || [];
+        if (!b.find((x) => x.id === currentPoiId)) {
+          b.push({ id: currentPoiId, name: currentPoiName });
+          alert(t.savedSuccess);
+        } else alert(t.alreadySaved);
+        localStorage.setItem("bookmarkedPOIs", JSON.stringify(b));
+        renderBookmarkList(b);
       }
-
       function showBookmarks() {
-        const bookmarks =
-          JSON.parse(localStorage.getItem("bookmarkedPOIs")) || [];
-        const list = document.getElementById("bookmark-list");
-
-        if (bookmarks.length === 0) {
-          list.innerHTML =
-            "<p class='text-gray-500 text-center py-4'>Chưa có địa điểm nào được lưu.</p>";
-        } else {
-          list.innerHTML = bookmarks
-            .map(
-              (b) => `
-                <li class="py-3 flex justify-between items-center">
-                    <span class="font-medium text-gray-800">${b.name}</span>
-                    <button onclick="removeBookmark(${b.id})" class="text-red-500 text-sm border border-red-500 rounded px-2 py-1 hover:bg-red-50">Xóa</button>
-                </li>
-            `,
-            )
-            .join("");
-        }
+        renderBookmarkList(
+          JSON.parse(localStorage.getItem("bookmarkedPOIs")) || [],
+        );
         document.getElementById("bookmark-modal").classList.remove("hidden");
       }
-
+      function searchBookmarks() {
+        renderBookmarkList(
+          (JSON.parse(localStorage.getItem("bookmarkedPOIs")) || []).filter(
+            (b) =>
+              b.name
+                .toLowerCase()
+                .includes(
+                  document.getElementById("bookmarkSearch").value.toLowerCase(),
+                ),
+          ),
+        );
+      }
       function removeBookmark(id) {
-        let bookmarks =
-          JSON.parse(localStorage.getItem("bookmarkedPOIs")) || [];
-        bookmarks = bookmarks.filter((b) => b.id !== id);
-        localStorage.setItem("bookmarkedPOIs", JSON.stringify(bookmarks));
-        showBookmarks(); // Cập nhật lại giao diện danh sách ngay lập tức
+        localStorage.setItem(
+          "bookmarkedPOIs",
+          JSON.stringify(
+            (JSON.parse(localStorage.getItem("bookmarkedPOIs")) || []).filter(
+              (b) => b.id !== id,
+            ),
+          ),
+        );
+        searchBookmarks();
+      }
+      function renderBookmarkList(data) {
+        const t =
+          dict[document.getElementById("lang-switch").value] || dict["vi"];
+        document.getElementById("bookmark-list").innerHTML =
+          data.length === 0
+            ? `<p class='p-4 md:p-6 text-center text-gray-500'>${t.empty}</p>`
+            : data
+                .map(
+                  (b) =>
+                    `<li class="p-3 md:p-4 flex justify-between bg-white border-b items-center"><span class="text-sm md:text-base font-bold">${b.name}</span><button onclick="removeBookmark(${b.id})" class="text-red-500 md:text-base text-xs px-3 py-1 rounded-lg bg-red-50 font-bold hover:bg-red-100 transition">${t.delete}</button></li>`,
+                )
+                .join("");
       }
 
-      // 7. Sự kiện chuyển ngôn ngữ thời gian thực
-      document
-        .getElementById("lang-switch")
-        .addEventListener("change", function () {
-          if (currentPoiData && currentPoiData.description) {
-            const selectedLang = this.value;
-            translateAndSpeak(currentPoiData.description, selectedLang);
-          }
-        });
-
-      // 8. Quét QR
       const qrModal = document.getElementById("qr-modal");
       let html5QrCode = null;
-
       document.getElementById("btn-scan-qr").addEventListener("click", () => {
-        if ("speechSynthesis" in window) window.speechSynthesis.cancel(); // Ngắt giọng đọc khi mở camera
+        unlockAudioContext();
         qrModal.classList.remove("hidden");
-
         html5QrCode = new Html5Qrcode("qr-reader");
         html5QrCode
           .start(
             { facingMode: "environment" },
             { fps: 10, qrbox: 250 },
-            onScanSuccess,
+            (text) => {
+              html5QrCode.stop();
+              qrModal.classList.add("hidden");
+              lastPlayedPoiId = parseInt(text);
+              fetchPOIAndRender(lastPlayedPoiId);
+            },
           )
-          .catch(() => {
-            Html5Qrcode.getCameras().then((devices) => {
-              if (devices.length > 0)
-                html5QrCode.start(
-                  devices[0].id,
-                  { fps: 10, qrbox: 250 },
-                  onScanSuccess,
-                );
-            });
-          });
+          .catch(() => {});
+      });
+      document.getElementById("btn-close-qr").addEventListener("click", () => {
+        if (html5QrCode) html5QrCode.stop();
+        qrModal.classList.add("hidden");
       });
 
-      function onScanSuccess(decodedText) {
-        if (html5QrCode) {
-          html5QrCode.stop().then(() => html5QrCode.clear());
-        }
-        qrModal.classList.add("hidden");
-
-        const poiId = parseInt(decodedText);
-        fetch(`/api/POI/${poiId}`, {
-          method: "GET",
-          headers: {
-            "ngrok-skip-browser-warning": "true",
-            Authorization: "Bearer " + localStorage.getItem("guestToken"),
-          },
-        })
-          .then((res) => {
-            if (!res.ok) throw new Error("Không tìm thấy địa điểm");
-            return res.json();
-          })
-          .then((poiInfo) => renderPoiCard(poiInfo))
-          .catch((err) => alert("Lỗi quét QR"));
+      function closePoiCard() {
+        document.getElementById("poi-card").classList.add("hidden");
+        document.getElementById("mini-reopen-btn").classList.remove("hidden");
       }
 
-      document.getElementById("btn-close-qr").addEventListener("click", () => {
-        if ("speechSynthesis" in window) window.speechSynthesis.cancel(); // Ngắt giọng đọc khi đóng camera
-        if (html5QrCode) {
-          html5QrCode.stop().then(() => html5QrCode.clear());
-        }
-        qrModal.classList.add("hidden");
-      });
+      function reopenPoiCard() {
+        document.getElementById("poi-card").classList.remove("hidden");
+        document.getElementById("mini-reopen-btn").classList.add("hidden");
+      }
     </script>
   </body>
 </html>

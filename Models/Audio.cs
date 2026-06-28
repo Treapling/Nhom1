@@ -23,5 +23,8 @@ namespace Nhom1.Models
         [Required]
         [MaxLength(50)]
         public string Language { get; set; }
+
+        // MỚI: Phân loại nhạc Thường (false) và Nhạc Premium (true)
+        public bool IsPremium { get; set; } = false;
     }
 }

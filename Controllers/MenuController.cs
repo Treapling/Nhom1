@@ -13,8 +13,9 @@ namespace Nhom1.Controllers
         private readonly AppDbContext _context;
         public MenuController(AppDbContext context) { _context = context; }
 
+        // Đã sửa Role để GuestFree và GuestPremium đều có thể đọc được thực đơn
         [HttpGet("poi/{poiId}")]
-        [Authorize(Roles = "Guest,Vendor,Admin")] 
+        [Authorize] 
         public async Task<IActionResult> GetMenusByPoi(int poiId)
         {
             var menus = await _context.Menus.Where(m => m.POI_Id == poiId).ToListAsync();
@@ -31,12 +32,31 @@ namespace Nhom1.Controllers
 
             var poi = await _context.POIs.FirstOrDefaultAsync(p => p.Id == menu.POI_Id && p.UserId == vendorId);
             
-            // Lệnh chuẩn để trả về lỗi 403 kèm nội dung văn bản
-            if (poi == null) return StatusCode(403, "Bạn không có quyền thêm món cho địa điểm này (ID không thuộc quyền sở hữu của bạn).");
+            if (poi == null) return StatusCode(403, "Bạn không có quyền thêm món cho địa điểm này.");
 
             _context.Menus.Add(menu);
             await _context.SaveChangesAsync();
             return Ok(menu);
+        }
+
+        // TÍNH NĂNG MỚI: XÓA MÓN ĂN CHO VENDOR
+        [HttpDelete("{id}")]
+        [Authorize(Roles = "Vendor")]
+        public async Task<IActionResult> DeleteMenuItem(int id)
+        {
+            var vendorIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            if (vendorIdClaim == null) return Unauthorized();
+            int vendorId = int.Parse(vendorIdClaim);
+
+            var menu = await _context.Menus.Include(m => m.POI).FirstOrDefaultAsync(m => m.Id == id);
+            if (menu == null) return NotFound();
+
+            // Check quyền sở hữu
+            if (menu.POI.UserId != vendorId) return StatusCode(403, "Bạn không có quyền xóa món này.");
+
+            _context.Menus.Remove(menu);
+            await _context.SaveChangesAsync();
+            return Ok(new { message = "Đã xóa món ăn thành công." });
         }
     }
 }

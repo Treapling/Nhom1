@@ -2,82 +2,65 @@
 <html lang="vi">
   <head>
     <meta charset="UTF-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Thanh toán Premium - Vĩnh Khánh Tour</title>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css"
+      rel="stylesheet"
     />
-    <title>Thanh toán Vé 24h - SGU Tour Guide</title>
-    <script src="https://cdn.tailwindcss.com"></script>
   </head>
   <body
-    class="bg-gray-100 font-sans antialiased flex items-center justify-center min-h-screen p-4"
+    class="bg-gray-900 font-sans antialiased flex items-center justify-center min-h-screen p-4"
   >
-    <div
-      class="bg-white w-full max-w-[400px] rounded-2xl shadow-xl overflow-hidden"
-    >
-      <div class="bg-pink-600 p-4 text-center">
-        <h2 class="text-white text-xl font-bold">Thanh toán vé Audio 24h</h2>
+    <div class="bg-white max-w-md w-full rounded-2xl shadow-xl overflow-hidden">
+      <div class="bg-red-600 px-6 py-4 text-white text-center shadow-sm">
+        <h2 class="text-2xl font-extrabold">Mua vé Audio Premium 24h</h2>
       </div>
-      <div class="p-6 text-center">
-        <p class="text-gray-600 mb-4">
-          Quét mã QR dưới đây bằng ví MoMo hoặc ứng dụng Ngân hàng để kích hoạt
-          hệ thống AI Tour Guide.
+      <div class="p-6">
+        <p class="text-gray-600 text-center mb-6 font-medium">
+          Quét mã QR MoMo dưới đây để kích hoạt giọng đọc người thật, gửi bình
+          luận và bỏ giới hạn 5 lượt quét.
         </p>
-
-        <div
-          class="bg-gray-200 w-48 h-48 mx-auto rounded-lg flex items-center justify-center mb-4 border-4 border-pink-500 border-dashed"
-        >
-          <span class="text-gray-500 font-bold"
-            >MÃ QR MOMO<br />(20.000 VNĐ)</span
+        <div class="flex justify-center mb-6">
+          <div
+            class="border-2 border-dashed border-red-300 p-4 rounded-xl text-center bg-red-50"
           >
+            <div
+              class="bg-gray-200 w-48 h-48 mb-2 flex items-center justify-center font-bold text-gray-500 rounded-lg mx-auto"
+            >
+              [MÃ QR MOMO]
+            </div>
+            <p class="font-black text-xl text-red-600">20.000 VNĐ</p>
+          </div>
         </div>
-
-        <div
-          class="bg-blue-50 text-blue-800 p-3 rounded-lg text-sm mb-6 text-left"
-        >
-          <strong>Quyền lợi:</strong><br />
-          - Nghe thuyết minh tự động qua GPS<br />
-          - Không giới hạn số lần quét QR địa điểm<br />
-          - Hiệu lực: 24 giờ kể từ lúc thanh toán
-        </div>
-
         <button
-          id="btn-confirm"
-          onclick="processPayment()"
-          class="w-full bg-pink-600 hover:bg-pink-700 text-white font-bold py-3 rounded-xl shadow transition-colors text-lg"
+          id="btnConfirm"
+          onclick="confirmPayment()"
+          class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-xl shadow-md transition-colors mb-3"
         >
           Xác nhận đã chuyển khoản
         </button>
-        <a href="index.html" class="block mt-4 text-gray-500 underline text-sm"
+        <a
+          href="index.html"
+          class="block w-full text-center text-gray-500 hover:text-gray-700 font-medium py-2"
           >Quay lại trang chủ</a
         >
       </div>
     </div>
-
     <script>
-      function processPayment() {
-        const btn = document.getElementById("btn-confirm");
+      function confirmPayment() {
+        const btn = document.getElementById("btnConfirm");
         btn.innerText = "Đang xử lý...";
         btn.disabled = true;
 
-        // Gọi API cấp JWT Token 24h
-        fetch("/api/Auth/guest-token", {
-          method: "POST",
-          headers: { "ngrok-skip-browser-warning": "true" },
-        })
+        fetch("/api/Auth/guest-premium", { method: "POST" })
           .then((res) => res.json())
           .then((data) => {
-            // Lưu token và đánh dấu đã kích hoạt
             localStorage.setItem("guestToken", data.token);
-            localStorage.setItem("isTourActivated", "true");
-
-            alert(
-              "Thanh toán thành công! Chào mừng bạn đến với SGU Tour Guide.",
-            );
-            window.location.href = "index.html"; // Chuyển hướng vào bản đồ
+            window.location.href = "index.html"; // Quay về và tự kích hoạt
           })
-          .catch((err) => {
-            alert("Lỗi mạng: Không thể kết nối Server.");
+          .catch(() => {
+            alert("Lỗi mạng!");
             btn.innerText = "Thử lại";
             btn.disabled = false;
           });

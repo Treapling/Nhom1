@@ -22,42 +22,20 @@ namespace Nhom1.Controllers
         [HttpGet("check")]
         public async Task<IActionResult> CheckLocation([FromQuery] double lat, [FromQuery] double lng)
         {
+            // TỐI ƯU HÓA: Chỉ lấy các điểm đã duyệt và KHÔNG Include Audios để tránh quá tải RAM
             var allPOIs = await _context.POIs
-                .Include(p => p.Audios) 
+                .Where(p => p.ApprovalStatus == 1)
                 .ToListAsync();
 
             var triggeredPoi = _geofenceService.CheckTriggeredPOI(lat, lng, allPOIs);
 
             if (triggeredPoi != null)
             {
-                // 1. GHI LOG SỰ KIỆN GPS TRIGGER VÀO DATA PIPELINE
-                var log = new TrackingLog {
-                    POI_Id = triggeredPoi.Id,
-                    EventType = "GPS_TRIGGER",
-                    Timestamp = DateTime.UtcNow
-                };
-                _context.TrackingLogs.Add(log);
-                await _context.SaveChangesAsync();
-
-                // 2. ĐẾM LẠI SỐ LOG ĐỂ CẬP NHẬT CHART
-                int totalListens = await _context.TrackingLogs.CountAsync(l => l.POI_Id == triggeredPoi.Id);
-
-                var audioTrack = triggeredPoi.Audios?.FirstOrDefault();
-                string audioPath = audioTrack != null ? audioTrack.FilePath : "default_audio.mp3"; 
-
+                // Frontend sẽ tự động gọi GetPOI(id) để lấy chi tiết và ghi log.
+                // Trả về ID cực nhẹ, không nhồi nhét data dư thừa
                 return Ok(new {
                     triggered = true,
-                    poi = new {
-                        id = triggeredPoi.Id,
-                        name = triggeredPoi.Name,
-                        description = triggeredPoi.Description,
-                        lat = triggeredPoi.Lat,
-                        lng = triggeredPoi.Lng,
-                        radius = triggeredPoi.Radius,
-                        priority = triggeredPoi.Priority,
-                        listenCount = totalListens // Trả về số liệu thật
-                    },
-                    FilePath = audioPath 
+                    poi = new { id = triggeredPoi.Id } 
                 });
             }
 

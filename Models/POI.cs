@@ -15,6 +15,13 @@ namespace Nhom1.Models
         [MaxLength(2000)]
         public string Description { get; set; }
 
+        // --- BỔ SUNG ĐA NGÔN NGỮ MÔ TẢ ---
+        public string DescriptionEn { get; set; } // Tiếng Anh
+        public string DescriptionZh { get; set; } // Tiếng Trung
+        public string DescriptionKo { get; set; } // Tiếng Hàn
+        public string DescriptionJa { get; set; } // Tiếng Nhật
+        // ---------------------------------
+
         [Required]
         public double Lat { get; set; } 
 
@@ -27,6 +34,10 @@ namespace Nhom1.Models
         [Required]
         public int Priority { get; set; } 
 
+        // TRẠNG THÁI DUYỆT (Mới thêm)
+        // 0: Chờ duyệt (Pending) | 1: Đã duyệt (Approved) | -1: Bị từ chối (Rejected)
+        public int ApprovalStatus { get; set; } = 1; // Mặc định 1 để các data cũ không bị ẩn đi
+
         // Khóa ngoại liên kết với Vendor. Nếu UserId = null => POI này của Admin quản lý chung
         public int? UserId { get; set; }
         [ForeignKey("UserId")]
@@ -34,6 +45,6 @@ namespace Nhom1.Models
 
         public ICollection<Audio> Audios { get; set; }
         public ICollection<TrackingLog> TrackingLogs { get; set; } 
-        public ICollection<Tour> Tours { get; set; } // BẮT BUỘC PHẢI CÓ DÒNG NÀY ĐỂ KHÔNG LỖI
+        public ICollection<Tour> Tours { get; set; } 
     }
 }
