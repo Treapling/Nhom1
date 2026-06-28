@@ -60,6 +60,8 @@ namespace Nhom1.Controllers
                 .Select(p => new {
                     id = p.Id,
                     name = p.Name,
+                    lat = p.Lat,
+                    lng = p.Lng,
                     listenCount = p.TrackingLogs.Count()
                 }).ToList();
 
