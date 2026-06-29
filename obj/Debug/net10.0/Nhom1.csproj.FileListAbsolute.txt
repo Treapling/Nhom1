@@ -651,6 +651,6 @@ C:\Users\ADMIN\Nhom1 - new\Nhom1\bin\Debug\net10.0\runtimes\win-x64\native\Micro
 C:\Users\ADMIN\Nhom1 - new\Nhom1\bin\Debug\net10.0\runtimes\win-x86\native\Microsoft.Data.SqlClient.SNI.dll
 C:\Users\ADMIN\Nhom1 - new\Nhom1\obj\Debug\net10.0\compressed\l5zwp70hea-{0}-6bj4bwf13v-6bj4bwf13v.gz
 C:\Users\ADMIN\Nhom1 - new\Nhom1\obj\Debug\net10.0\compressed\uykt2fsp2d-{0}-4w0e8h2w51-4w0e8h2w51.gz
-C:\Users\ADMIN\Nhom1 - new\Nhom1\obj\Debug\net10.0\compressed\jc4zt4shzo-{0}-bd3sxtqw4k-bd3sxtqw4k.gz
-C:\Users\ADMIN\Nhom1 - new\Nhom1\obj\Debug\net10.0\compressed\rc3xwp9tdy-{0}-xu39qd2krp-xu39qd2krp.gz
-C:\Users\ADMIN\Nhom1 - new\Nhom1\obj\Debug\net10.0\compressed\ikdc46q5kj-{0}-jf8xy9bi9h-jf8xy9bi9h.gz
+C:\Users\ADMIN\Nhom1 - new\Nhom1\obj\Debug\net10.0\compressed\jc4zt4shzo-{0}-ml916iwkpu-ml916iwkpu.gz
+C:\Users\ADMIN\Nhom1 - new\Nhom1\obj\Debug\net10.0\compressed\rc3xwp9tdy-{0}-b12ptej671-b12ptej671.gz
+C:\Users\ADMIN\Nhom1 - new\Nhom1\obj\Debug\net10.0\compressed\ikdc46q5kj-{0}-2g7dpyjxul-2g7dpyjxul.gz

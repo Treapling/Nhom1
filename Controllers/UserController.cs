@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Nhom1.Data;
 using Nhom1.Models;
 using System.Threading.Tasks;
+using System.Linq;
 
 namespace Nhom1.Controllers
 {
@@ -16,18 +17,22 @@ namespace Nhom1.Controllers
 
         [HttpPost("vendor")]
         [Authorize(Roles = "Admin")]
-        public IActionResult CreateVendor([FromBody] User user)
+        public IActionResult CreateVendor([FromBody] CreateVendorRequest request)
         {
-            if (_context.Users.Any(u => u.Username == user.Username))
+            // Kiểm tra trùng lặp tài khoản
+            if (_context.Users.Any(u => u.Username == request.Username))
                 return BadRequest(new { message = "Tên đăng nhập đã tồn tại trong hệ thống." });
             
-            user.Role = "Vendor";
-            user.IsActive = true;
-            user.MaxPOISlots = 0; 
-            
-            // Xử lý mặc định Tên Shop vì Admin không còn nhập trường này nữa
-            if (string.IsNullOrEmpty(user.ShopName)) 
-                user.ShopName = "Chưa cập nhật";
+            // Khởi tạo thực thể User mới từ dữ liệu DTO để né bộ lọc Validation tự động của C#
+            var user = new User
+            {
+                Username = request.Username,
+                PasswordHash = request.PasswordHash,
+                Role = "Vendor",
+                IsActive = true,
+                MaxPOISlots = 0,
+                ShopName = "Chưa cập nhật"
+            };
 
             _context.Users.Add(user);
             _context.SaveChanges();
@@ -53,5 +58,12 @@ namespace Nhom1.Controllers
                 message = "Thanh toán thành công! Hệ thống đã tự động cộng thêm 1 Slot đăng ký quán cho bạn." 
             });
         }
+    }
+
+    // LỚP TRUNG GIAN (DTO) GIÚP GIẢI QUYẾT TRIỆT ĐỂ LỖI VALIDATION FIELD REQUIRED
+    public class CreateVendorRequest
+    {
+        public string Username { get; set; }
+        public string PasswordHash { get; set; }
     }
 }

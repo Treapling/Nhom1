@@ -39,6 +39,21 @@ namespace Nhom1.Controllers
             return Ok(menu);
         }
 
+        [HttpPut("{id}")]
+        [Authorize(Roles = "Vendor")]
+        public async Task<IActionResult> UpdateMenuItem(int id, [FromBody] Menu updatedMenu)
+        {
+            var vendorId = int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value);
+            var menu = await _context.Menus.Include(m => m.POI).FirstOrDefaultAsync(m => m.Id == id);
+            
+            if (menu == null || menu.POI.UserId != vendorId) return StatusCode(403, "Không có quyền.");
+
+            menu.ItemName = updatedMenu.ItemName;
+            menu.Price = updatedMenu.Price;
+            await _context.SaveChangesAsync();
+            return Ok(new { message = "Sửa món ăn thành công." });
+        }
+
         // TÍNH NĂNG MỚI: XÓA MÓN ĂN CHO VENDOR
         [HttpDelete("{id}")]
         [Authorize(Roles = "Vendor")]

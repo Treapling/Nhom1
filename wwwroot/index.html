@@ -56,24 +56,21 @@
           <p class="text-gray-600 mb-8 font-medium md:text-xl">
             Bắt đầu trải nghiệm khám phá ẩm thực tự động ngay bây giờ!
           </p>
-
           <button
             onclick="activateFree()"
             class="w-full max-w-md bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-4 rounded-xl shadow-sm text-lg md:text-xl mb-4 transition-colors"
           >
             Kích Hoạt Miễn Phí
           </button>
-
           <div class="mb-4 w-full">
             <span class="text-gray-400 font-medium">--- Hoặc ---</span>
           </div>
-
-          <a
-            href="checkout.html"
+          <button
+            onclick="activatePremium()"
             class="w-full max-w-md bg-red-600 hover:bg-red-700 text-white font-bold py-4 rounded-xl shadow-lg text-lg md:text-xl inline-block text-center transition-colors"
           >
-            ⭐ Mua gói Premium 24h
-          </a>
+            ⭐ Dùng thử Premium 24h
+          </button>
         </div>
       </div>
 
@@ -101,7 +98,6 @@
             ></span>
           </div>
         </div>
-
         <div class="flex gap-1 md:gap-2 items-center flex-wrap justify-end">
           <button
             onclick="showBookmarks()"
@@ -109,7 +105,6 @@
           >
             ❤️ <span class="ui-nav-saved">Đã lưu</span>
           </button>
-
           <button
             onclick="endTour()"
             class="bg-red-800 hover:bg-red-900 px-2 py-1.5 md:px-3 rounded text-[10px] md:text-sm font-bold text-white transition shadow-sm"
@@ -117,14 +112,12 @@
           >
             Kết thúc Tour
           </button>
-
           <button
             id="btn-scan-qr"
             class="bg-red-700 hover:bg-red-800 px-2 py-1.5 md:px-3 rounded text-[10px] md:text-sm font-bold text-white transition shadow-sm"
           >
             📷 <span id="ui-scan">Quét QR</span>
           </button>
-
           <button
             onclick="simulateGPS()"
             class="bg-yellow-500 hover:bg-yellow-600 px-2 py-1.5 md:px-3 rounded text-[10px] md:text-sm font-bold text-dark transition shadow-sm"
@@ -141,99 +134,117 @@
 
         <div
           id="poi-card"
-          class="hidden absolute bottom-0 left-0 right-0 md:top-4 md:bottom-4 md:right-4 md:left-auto md:w-[420px] bg-white rounded-t-2xl md:rounded-2xl shadow-2xl p-4 md:p-5 flex flex-col overflow-hidden z-[1000] max-h-[70vh] md:max-h-full border border-gray-200"
+          class="hidden absolute bottom-0 left-0 right-0 md:top-4 md:bottom-auto md:right-4 md:left-auto md:w-[340px] bg-white rounded-t-2xl md:rounded-xl shadow-2xl p-3 md:p-4 flex flex-col overflow-hidden z-[1000] max-h-[50vh] md:max-h-[85vh] border border-gray-200"
         >
           <div class="flex justify-between items-start mb-2 flex-shrink-0">
             <h2
               id="poi-name"
-              class="text-xl md:text-2xl font-bold text-red-700 pr-2"
+              class="text-lg md:text-xl font-bold text-red-700 pr-2 leading-tight"
             >
               Đang tải...
             </h2>
             <button
               onclick="toggleBookmark()"
-              class="text-2xl md:text-3xl hover:scale-110"
+              class="text-xl md:text-2xl hover:scale-110"
             >
               ❤️
             </button>
             <button
               onclick="closePoiCard()"
-              class="text-gray-400 hover:text-red-600 text-2xl font-bold px-2 pb-1 transition leading-none"
+              class="text-gray-400 hover:text-red-600 text-xl font-bold px-2 pb-1 transition leading-none"
             >
               &times;
             </button>
           </div>
 
           <div
-            class="flex items-center gap-2 mb-2 md:mb-4 text-[11px] md:text-sm flex-shrink-0 border-b border-gray-100 pb-2"
+            class="flex items-center gap-1 mb-2 md:mb-3 text-[10px] md:text-xs flex-shrink-0 border-b border-gray-100 pb-2"
           >
             <button
               onclick="showReviews()"
-              class="bg-yellow-100 hover:bg-yellow-200 text-yellow-800 font-bold px-2 py-1 md:py-1.5 rounded transition"
+              class="bg-yellow-100 hover:bg-yellow-200 text-yellow-800 font-bold px-2 py-1 rounded transition"
               id="poi-rating"
             >
               Đánh giá: 0⭐ (0)
             </button>
             <span
-              class="bg-blue-100 text-blue-800 font-bold px-2 py-1 md:py-1.5 rounded"
+              class="bg-blue-100 text-blue-800 font-bold px-2 py-1 rounded"
               id="poi-listens"
               >🎧 0 lượt nghe</span
             >
             <button
               onclick="drawRouteToPOI()"
-              class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-3 py-1 md:py-1.5 rounded transition ml-auto flex items-center gap-1 shadow-sm"
+              class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-2 py-1 rounded transition ml-auto flex items-center gap-1 shadow-sm"
             >
               🧭 <span id="ui-route">Dẫn đường</span>
             </button>
           </div>
 
-          <div class="overflow-y-auto pr-2 flex-1">
-            <p
-              id="poi-desc"
-              class="text-sm md:text-base text-gray-700 mb-3 md:mb-5"
+          <div
+            id="poi-queue-nav"
+            class="hidden justify-between items-center bg-gray-100 p-1 px-2 rounded-lg mb-2 shadow-inner flex-shrink-0"
+          >
+            <button
+              onclick="prevPoiInQueue()"
+              class="bg-white hover:bg-gray-200 text-gray-700 font-bold py-1 px-2 rounded shadow-sm text-xs transition"
             >
+              ◀ Trước
+            </button>
+            <span id="queue-status" class="text-xs font-extrabold text-gray-600"
+              >1 / 1</span
+            >
+            <button
+              onclick="nextPoiInQueue()"
+              class="bg-white hover:bg-gray-200 text-gray-700 font-bold py-1 px-2 rounded shadow-sm text-xs transition"
+            >
+              Sau ▶
+            </button>
+          </div>
+
+          <div class="overflow-y-auto pr-1 flex-1 text-sm">
+            <p id="poi-desc" class="text-xs md:text-sm text-gray-700 mb-2">
               ...
             </p>
 
             <div
-              class="bg-gray-50 p-2 md:p-3 rounded-lg mb-3 md:mb-5 border border-gray-200 text-center"
+              class="bg-gray-50 p-2 rounded-lg mb-2 border border-gray-200 text-center"
             >
               <span
                 id="audio-error"
-                class="text-xs md:text-sm text-red-500 font-bold hidden"
+                class="text-[10px] md:text-xs text-red-500 font-bold hidden"
                 >❌ Chưa có bản thu âm cho ngôn ngữ này!</span
               >
               <audio
                 id="audio-player"
                 controls
-                class="w-full h-10 md:h-12 outline-none"
+                class="w-full h-8 md:h-10 outline-none"
                 style="display: none"
               ></audio>
             </div>
 
-            <div id="poi-menu-container" class="hidden mt-4">
+            <div id="poi-menu-container" class="hidden mt-2">
               <h4
                 id="ui-menu-title"
-                class="font-bold text-gray-800 border-b-2 border-red-500 inline-block mb-2"
+                class="font-bold text-gray-800 text-sm border-b-2 border-red-500 inline-block mb-1"
               >
                 🍽️ Thực đơn:
               </h4>
-              <div id="poi-menu-list" class="flex flex-col gap-1 mt-2"></div>
+              <div id="poi-menu-list" class="flex flex-col gap-1 mt-1"></div>
             </div>
 
             <div
-              class="p-3 bg-gray-50 rounded-xl border border-gray-200 flex flex-col gap-2 mt-2"
+              class="p-2 bg-gray-50 rounded-lg border border-gray-200 flex flex-col gap-2 mt-2"
             >
               <textarea
                 id="review-comment"
-                rows="3"
-                class="w-full border border-gray-300 p-2 md:p-3 rounded-lg text-sm md:text-base outline-none hidden"
+                rows="2"
+                class="w-full border border-gray-300 p-2 rounded-lg text-xs md:text-sm outline-none hidden"
                 placeholder="Nhận xét của bạn..."
               ></textarea>
-              <div class="flex items-center gap-2 mt-1">
+              <div class="flex items-center gap-1 mt-1">
                 <select
                   id="rating-select"
-                  class="border border-gray-300 p-1.5 md:p-2 rounded-lg text-sm md:text-base bg-white flex-1 outline-none"
+                  class="border border-gray-300 p-1 md:p-1.5 rounded-lg text-xs md:text-sm bg-white flex-1 outline-none"
                 >
                   <option value="5">⭐⭐⭐⭐⭐ 5/5</option>
                   <option value="4">⭐⭐⭐⭐ 4/5</option>
@@ -243,7 +254,7 @@
                 </select>
                 <button
                   onclick="submitReview()"
-                  class="bg-red-600 hover:bg-red-700 text-white px-4 md:px-5 py-1.5 md:py-2 rounded-lg text-sm md:text-base font-bold"
+                  class="bg-red-600 hover:bg-red-700 text-white px-3 md:px-4 py-1 md:py-1.5 rounded-lg text-xs md:text-sm font-bold"
                   id="ui-send"
                 >
                   Gửi
@@ -252,6 +263,7 @@
             </div>
           </div>
         </div>
+
         <button
           id="mini-reopen-btn"
           onclick="reopenPoiCard()"
@@ -282,7 +294,6 @@
           </button>
         </div>
       </div>
-
       <div
         id="bookmark-modal"
         class="hidden absolute inset-0 flex items-center justify-center p-4 bg-black bg-opacity-70"
@@ -321,7 +332,6 @@
           </div>
         </div>
       </div>
-
       <div
         id="reviews-modal"
         class="hidden absolute inset-0 flex items-center justify-center p-4 bg-black bg-opacity-70"
@@ -377,10 +387,9 @@
         }
       }
 
-      // ĐÃ SỬA: BỔ SUNG ĐẦY ĐỦ DẤU PHẨY
       const dict = {
         vi: {
-          reopen: "Xem thông tin quán",
+          reopen: "Xem thông tin",
           map: "Bản đồ",
           saved: "Đã lưu",
           menu: "🍽️ Thực đơn:",
@@ -390,7 +399,7 @@
           sim: "Đi bộ",
           savedTitle: "❤️ Đã lưu",
           req: "Nhận xét của bạn...",
-          end: "Kết thúc Tour",
+          end: "Kết thúc",
           errAudio: "❌ Chưa có bản thu âm cho ngôn ngữ này!",
           rating: "Đánh giá",
           listen: "lượt nghe",
@@ -403,7 +412,7 @@
           savedSuccess: "Đã lưu thành công!!",
         },
         en: {
-          reopen: "View POI Info",
+          reopen: "View Info",
           map: "Map",
           saved: "Saved",
           menu: "🍽️ Menu:",
@@ -414,7 +423,7 @@
           savedTitle: "❤️ Saved",
           req: "Your review...",
           end: "End Tour",
-          errAudio: "❌ No audio available for this language!",
+          errAudio: "❌ No audio available!",
           rating: "Rating",
           listen: "listens",
           reviews: "⭐ Customer Reviews",
@@ -426,7 +435,7 @@
           savedSuccess: "Saved successfully!!",
         },
         zh: {
-          reopen: "查看景点信息",
+          reopen: "查看信息",
           map: "地图",
           saved: "已保存",
           menu: "🍽️ 菜单:",
@@ -449,7 +458,7 @@
           savedSuccess: "已添加到您的保存列表！！",
         },
         ko: {
-          reopen: "POI 정보 보기",
+          reopen: "정보 보기",
           map: "지도",
           saved: "저장됨",
           menu: "🍽️ 메뉴:",
@@ -472,7 +481,7 @@
           savedSuccess: "저장된 장소에 추가되었습니다!!",
         },
         ja: {
-          reopen: "POI情報を見る",
+          reopen: "情報を見る",
           map: "地図",
           saved: "保存済",
           menu: "🍽️ メニュー:",
@@ -501,9 +510,132 @@
         currentPoiName = "",
         currentPoiData = null,
         timerInterval = null;
+      let routingControl = null,
+        destMarker = null;
 
-      let routingControl = null;
-      let destMarker = null;
+      let poiQueue = [];
+      let currentQueueIndex = 0;
+
+      function renderQueueNav() {
+        const nav = document.getElementById("poi-queue-nav");
+        if (poiQueue.length > 1) {
+          nav.classList.remove("hidden");
+          nav.classList.add("flex");
+          document.getElementById("queue-status").innerText =
+            `${currentQueueIndex + 1} / ${poiQueue.length}`;
+        } else {
+          nav.classList.add("hidden");
+          nav.classList.remove("flex");
+        }
+      }
+
+      function prevPoiInQueue() {
+        if (poiQueue.length <= 1) return;
+        currentQueueIndex =
+          (currentQueueIndex - 1 + poiQueue.length) % poiQueue.length;
+        fetchPOIAndRender(poiQueue[currentQueueIndex], false);
+      }
+
+      function nextPoiInQueue() {
+        if (poiQueue.length <= 1) return;
+        currentQueueIndex = (currentQueueIndex + 1) % poiQueue.length;
+        fetchPOIAndRender(poiQueue[currentQueueIndex], false);
+      }
+
+      let isSimulating = false;
+
+      function simulateGPS() {
+        if (isSimulating) return;
+        isSimulating = true;
+
+        unlockAudioContext();
+        if (simIndex >= vkPath.length) {
+          simIndex = 0;
+          lastPlayedPoiId = null;
+        }
+
+        const pos = vkPath[simIndex];
+        const newLatLng = new L.LatLng(pos[0], pos[1]);
+        userMarker.setLatLng(newLatLng);
+        map.panTo(newLatLng);
+        simIndex++;
+
+        if (routingControl && currentPoiData) {
+          routingControl.setWaypoints([
+            newLatLng,
+            L.latLng(currentPoiData.lat, currentPoiData.lng),
+          ]);
+        }
+
+        fetch(`/api/location/check?lat=${pos[0]}&lng=${pos[1]}`, {
+          headers: {
+            Authorization: "Bearer " + localStorage.getItem("guestToken"),
+          },
+        })
+          .then((r) => r.json())
+          .then((data) => {
+            if (data.triggered === true) syncQueueWithGPS(data.poiIds);
+            else syncQueueWithGPS([]);
+          })
+          .catch(() => {})
+          .finally(() => {
+            setTimeout(() => {
+              isSimulating = false;
+            }, 2000);
+          });
+      }
+
+      function syncQueueWithGPS(newIds) {
+        if (!newIds || newIds.length === 0) {
+          poiQueue = [];
+          document.getElementById("poi-card").classList.add("hidden");
+          document.getElementById("mini-reopen-btn").classList.add("hidden");
+          if (routingControl) map.removeControl(routingControl);
+          if (destMarker) map.removeLayer(destMarker);
+
+          const player = document.getElementById("audio-player");
+          if (player) player.pause();
+
+          currentPoiData = null;
+          currentPoiId = null;
+          lastPlayedPoiId = null;
+          return;
+        }
+
+        let queueChanged = false;
+        for (let i = poiQueue.length - 1; i >= 0; i--) {
+          if (!newIds.includes(poiQueue[i])) {
+            poiQueue.splice(i, 1);
+            queueChanged = true;
+          }
+        }
+
+        for (let id of newIds) {
+          if (!poiQueue.includes(id)) {
+            poiQueue.push(id);
+            queueChanged = true;
+          }
+        }
+
+        if (poiQueue.length === 0) {
+          document.getElementById("poi-card").classList.add("hidden");
+          document.getElementById("mini-reopen-btn").classList.add("hidden");
+          const player = document.getElementById("audio-player");
+          if (player) player.pause();
+          currentPoiData = null;
+          currentPoiId = null;
+          lastPlayedPoiId = null;
+          return;
+        }
+
+        if (currentQueueIndex >= poiQueue.length) currentQueueIndex = 0;
+
+        if (currentPoiId !== poiQueue[currentQueueIndex]) {
+          fetchPOIAndRender(poiQueue[currentQueueIndex], false);
+        } else if (queueChanged) {
+          renderQueueNav();
+        }
+      }
 
       let isAudioUnlocked = false;
       function unlockAudioContext() {
@@ -522,7 +654,6 @@
       document.body.addEventListener("click", unlockAudioContext);
       document.body.addEventListener("touchstart", unlockAudioContext);
 
-      // DỊCH TỰ ĐỘNG BẰNG GOOGLE TRANSLATE
       async function translateText(text, targetLang) {
         if (!text || targetLang === "vi") return text;
         try {
@@ -532,12 +663,10 @@
           const data = await res.json();
           return data[0].map((x) => x[0]).join("");
         } catch (e) {
-          console.error("Lỗi dịch:", e);
           return text;
         }
       }
 
-      // QUY ĐỔI TIỀN TỆ
       function getCurrencyDisplay(vndPrice, lang) {
         if (lang === "vi") return "";
         const rates = {
@@ -566,12 +695,10 @@
         document.getElementById("ui-send").innerText = t.send;
         document.getElementById("ui-sim").innerText = t.sim;
         document.getElementById("ui-end").innerText = t.end;
-
         if (document.getElementById("ui-route"))
           document.getElementById("ui-route").innerText = t.route;
         if (document.getElementById("ui-reopen"))
           document.getElementById("ui-reopen").innerText = t.reopen;
-
         document.getElementById("ui-modal-saved").innerText = t.savedTitle;
         document.getElementById("ui-modal-reviews").innerText = t.reviews;
         document.getElementById("audio-error").innerText = t.errAudio;
@@ -594,9 +721,7 @@
         .getElementById("lang-switch")
         .addEventListener("change", function () {
           updateUITexts(this.value);
-          if (currentPoiData) {
-            renderPoiCard(currentPoiData);
-          }
+          if (currentPoiData) renderPoiCard(currentPoiData);
         });
 
       document.addEventListener("DOMContentLoaded", () => {
@@ -612,13 +737,28 @@
         }
       });
 
-      function activateFree() {
-        fetch("/api/Auth/guest-free", { method: "POST" })
-          .then((r) => r.json())
-          .then((data) => {
-            localStorage.setItem("guestToken", data.token);
-            window.location.reload();
-          });
+      async function activateFree() {
+        try {
+          const r = await fetch("/api/Auth/guest-free", { method: "POST" });
+          if (!r.ok) throw new Error("API lỗi");
+          const data = await r.json();
+          localStorage.setItem("guestToken", data.token);
+          window.location.reload();
+        } catch (e) {
+          alert("Không thể kết nối đến Backend C#. Vui lòng chạy dotnet run.");
+        }
+      }
+
+      async function activatePremium() {
+        try {
+          const r = await fetch("/api/Auth/guest-premium", { method: "POST" });
+          if (!r.ok) throw new Error("API lỗi");
+          const data = await r.json();
+          localStorage.setItem("guestToken", data.token);
+          window.location.reload();
+        } catch (e) {
+          alert("Không thể kết nối đến Backend C#. Vui lòng chạy dotnet run.");
+        }
       }
 
       function endTour() {
@@ -634,7 +774,6 @@
         if (currentRole === "GuestPremium") {
           badge.classList.remove("hidden");
           document.getElementById("review-comment").classList.remove("hidden");
-
           timerInterval = setInterval(() => {
             let now = Math.floor(Date.now() / 1000);
             let diff = jwt.exp - now;
@@ -688,59 +827,22 @@
         [10.7610831, 106.7061797],
         [10.7609412, 106.706427],
         [10.7608033, 106.7066794],
+        [10.760482484714782, 106.70718457567926],
       ];
       let simIndex = 0,
         lastCheckTime = 0,
         lastPlayedPoiId = null;
-
-      function simulateGPS() {
-        unlockAudioContext();
-        if (simIndex >= vkPath.length) simIndex = 0;
-        const pos = vkPath[simIndex];
-        const newLatLng = new L.LatLng(pos[0], pos[1]);
-        userMarker.setLatLng(newLatLng);
-        map.panTo(newLatLng);
-        simIndex++;
-
-        if (routingControl && currentPoiData) {
-          routingControl.setWaypoints([
-            newLatLng,
-            L.latLng(currentPoiData.lat, currentPoiData.lng),
-          ]);
-        }
-
-        if (Date.now() - lastCheckTime > 4000) {
-          lastCheckTime = Date.now();
-          fetch(`/api/location/check?lat=${pos[0]}&lng=${pos[1]}`, {
-            headers: {
-              Authorization: "Bearer " + localStorage.getItem("guestToken"),
-            },
-          })
-            .then((r) => r.json())
-            .then((data) => {
-              if (data.triggered === true && data.poi.id !== lastPlayedPoiId) {
-                lastPlayedPoiId = data.poi.id;
-                fetchPOIAndRender(data.poi.id);
-              }
-            })
-            .catch(() => {});
-        }
-      }
 
       function drawRouteToPOI() {
         if (!currentPoiData || !userMarker) {
           alert("Đang xác định vị trí, vui lòng chờ...");
           return;
         }
-
         const userPos = userMarker.getLatLng();
         const destPos = L.latLng(currentPoiData.lat, currentPoiData.lng);
-
         if (routingControl != null) map.removeControl(routingControl);
         if (destMarker != null) map.removeLayer(destMarker);
-
         destMarker = L.marker(destPos).addTo(map);
-
         routingControl = L.Routing.control({
           waypoints: [userPos, destPos],
           routeWhileDragging: false,
@@ -753,46 +855,47 @@
             return null;
           },
         }).addTo(map);
-
         routingControl.on("routesfound", function (e) {
           const distanceMeters = e.routes[0].summary.totalDistance;
           const distText =
             distanceMeters >= 1000
               ? (distanceMeters / 1000).toFixed(2) + " km"
               : Math.round(distanceMeters) + " m";
-
           destMarker
             .bindPopup(
-              `
-                <div style="text-align: center; min-width: 120px;">
-                    <strong style="color: #dc2626; font-size: 14px;">${currentPoiData.name}</strong><br/>
-                    <span style="font-size: 13px; color: #374151;">Đường đi: <b style="color: #15803d;">${distText}</b></span>
-                </div>
-            `,
+              `<div style="text-align: center; min-width: 120px;"><strong style="color: #dc2626; font-size: 14px;">${currentPoiData.name}</strong><br/><span style="font-size: 13px; color: #374151;">Đường đi: <b style="color: #15803d;">${distText}</b></span></div>`,
             )
             .openPopup();
         });
-
         map.fitBounds(L.latLngBounds(userPos, destPos), { padding: [50, 50] });
       }
 
-      function fetchPOIAndRender(poiId) {
+      function fetchPOIAndRender(poiId, isNewScan = false) {
         fetch(`/api/POI/${poiId}`, {
           headers: {
             Authorization: "Bearer " + localStorage.getItem("guestToken"),
           },
         }).then(async (res) => {
+          if (!res.ok) {
+            if (isNewScan)
+              alert("Hiện tại địa điểm này chưa được đăng ký trên hệ thống!");
+            return;
+          }
           const data = await res.json();
-          if (!res.ok) return;
-
+          if (isNewScan) {
+            const existingIdx = poiQueue.indexOf(poiId);
+            if (existingIdx > -1) poiQueue.splice(existingIdx, 1);
+            poiQueue.unshift(poiId);
+            currentQueueIndex = 0;
+          }
           if (routingControl != null && currentPoiId !== poiId) {
             map.removeControl(routingControl);
             if (destMarker != null) map.removeLayer(destMarker);
             routingControl = null;
             destMarker = null;
           }
-
           renderPoiCard(data);
+          renderQueueNav();
         });
       }
 
@@ -800,21 +903,16 @@
         currentPoiId = poiInfo.id;
         currentPoiName = poiInfo.name;
         currentPoiData = poiInfo;
-
         document.getElementById("poi-card").classList.remove("hidden");
         document.getElementById("mini-reopen-btn").classList.add("hidden");
-
         const lang = document.getElementById("lang-switch").value;
-
         document.getElementById("poi-name").innerText =
           "Đang dịch / Translating...";
         document.getElementById("poi-name").innerText = await translateText(
           poiInfo.name,
           lang,
         );
-
         updateUITexts(lang);
-
         const fallbackDesc =
           poiInfo.descriptions && poiInfo.descriptions["vi"]
             ? poiInfo.descriptions["vi"]
@@ -825,7 +923,6 @@
           fallbackDesc,
           lang,
         );
-
         fetchAndRenderMenu(poiInfo.id, lang);
         playAudioForRole(lang);
       }
@@ -843,7 +940,6 @@
               ? audioList.find((a) => a.isPremium) ||
                 audioList.find((a) => !a.isPremium)
               : audioList.find((a) => !a.isPremium);
-
           if (matched) {
             player.src = matched.filePath;
             player.style.display = "block";
@@ -859,11 +955,9 @@
       function fetchAndRenderMenu(poiId, lang) {
         const container = document.getElementById("poi-menu-container"),
           list = document.getElementById("poi-menu-list");
-
         list.innerHTML =
-          "<p class='text-gray-500 text-sm italic'>Đang dịch thực đơn / Translating menu...</p>";
+          "<p class='text-gray-500 text-xs italic'>Đang dịch thực đơn / Translating menu...</p>";
         container.classList.remove("hidden");
-
         fetch(`/api/Menu/poi/${poiId}`, {
           headers: {
             Authorization: "Bearer " + localStorage.getItem("guestToken"),
@@ -876,15 +970,7 @@
               for (let m of menus) {
                 let translatedName = await translateText(m.itemName, lang);
                 let currencyStr = getCurrencyDisplay(m.price, lang);
-
-                menuHtml += `
-                        <div class="flex justify-between items-center py-2 md:py-3 border-b border-red-100 last:border-0">
-                            <span class="md:text-lg text-gray-800 font-medium">${translatedName}</span>
-                            <div class="text-right">
-                                <span class="font-bold text-red-600 md:text-lg block leading-none">${m.price.toLocaleString("vi-VN")}đ</span>
-                                <span class="text-xs text-gray-400 fw-bold">${currencyStr}</span>
-                            </div>
-                        </div>`;
+                menuHtml += `<div class="flex justify-between items-center py-1.5 border-b border-red-100 last:border-0"><span class="text-sm md:text-base text-gray-800 font-medium">${translatedName}</span><div class="text-right"><span class="font-bold text-red-600 text-sm md:text-base block leading-none">${m.price.toLocaleString("vi-VN")}đ</span><span class="text-[10px] text-gray-400 fw-bold">${currencyStr}</span></div></div>`;
               }
               list.innerHTML = menuHtml;
             } else {
@@ -910,7 +996,7 @@
           if (res.ok) {
             alert("Gửi thành công!");
             document.getElementById("review-comment").value = "";
-            fetchPOIAndRender(currentPoiId);
+            fetchPOIAndRender(currentPoiId, false);
           }
         });
       }
@@ -1009,8 +1095,7 @@
             (text) => {
               html5QrCode.stop();
               qrModal.classList.add("hidden");
-              lastPlayedPoiId = parseInt(text);
-              fetchPOIAndRender(lastPlayedPoiId);
+              fetchPOIAndRender(parseInt(text), true);
             },
           )
           .catch(() => {});
@@ -1019,12 +1104,10 @@
         if (html5QrCode) html5QrCode.stop();
         qrModal.classList.add("hidden");
       });
-
       function closePoiCard() {
         document.getElementById("poi-card").classList.add("hidden");
         document.getElementById("mini-reopen-btn").classList.remove("hidden");
       }
-
       function reopenPoiCard() {
         document.getElementById("poi-card").classList.remove("hidden");
         document.getElementById("mini-reopen-btn").classList.add("hidden");
