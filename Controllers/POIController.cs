@@ -4,6 +4,9 @@ using Microsoft.AspNetCore.Authorization;
 using Nhom1.Data;
 using Nhom1.Models;
 using System.Linq;
+using System.Threading.Tasks;
+using System;
+using System.Security.Claims;
 
 namespace Nhom1.Controllers
 {
@@ -12,11 +15,7 @@ namespace Nhom1.Controllers
     public class POIController : ControllerBase
     {
         private readonly AppDbContext _context;
-
-        public POIController(AppDbContext context)
-        {
-            _context = context;
-        }
+        public POIController(AppDbContext context) { _context = context; }
 
         [HttpGet("admin")]
         [Authorize(Roles = "Admin")]
@@ -26,7 +25,7 @@ namespace Nhom1.Controllers
                 .Select(p => new {
                     id = p.Id, name = p.Name, description = p.Description, lat = p.Lat, lng = p.Lng,
                     radius = p.Radius, priority = p.Priority, approvalStatus = p.ApprovalStatus,
-                    listenCount = p.TrackingLogs.Count(), 
+                    listenCount = _context.TrackingLogs.Count(t => t.POI_Id == p.Id), 
                     audios = p.Audios.Select(a => new { id = a.Id, filePath = a.FilePath, language = a.Language, isPremium = a.IsPremium }).ToList()
                 }).ToListAsync();
             return Ok(pois);
@@ -34,26 +33,52 @@ namespace Nhom1.Controllers
 
         [HttpGet("vendor")]
         [Authorize(Roles = "Vendor")]
-        public IActionResult GetVendorPOIs()
+        public async Task<IActionResult> GetVendorPOIs()
         {
-            var vendorIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            var vendorIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? User.FindFirst("sub")?.Value;
             if (vendorIdClaim == null) return Unauthorized();
             int vendorId = int.Parse(vendorIdClaim);
 
-            var pois = _context.POIs
+            var pois = await _context.POIs
                 .Where(p => p.UserId == vendorId)
-                .Select(p => new { id = p.Id, name = p.Name, approvalStatus = p.ApprovalStatus, listenCount = p.TrackingLogs.Count() })
-                .ToList();
+                .Select(p => new { 
+                    id = p.Id, name = p.Name, description = p.Description, lat = p.Lat, lng = p.Lng, approvalStatus = p.ApprovalStatus, 
+                    listenCount = _context.TrackingLogs.Count(t => t.POI_Id == p.Id),
+                    ratingAvg = _context.Reviews.Any(r => r.POI_Id == p.Id) ? Math.Round(_context.Reviews.Where(r => r.POI_Id == p.Id).Average(r => (double)r.Rating), 1) : 0,
+                    ratingTotalCount = _context.Reviews.Count(r => r.POI_Id == p.Id)
+                }).ToListAsync();
             return Ok(pois);
+        }
+
+        [HttpPut("{id}")]
+        [Authorize(Roles = "Vendor")]
+        public async Task<IActionResult> UpdatePOI(int id, [FromBody] POI updatedPOI)
+        {
+            var vendorIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? User.FindFirst("sub")?.Value;
+            var vendorId = int.Parse(vendorIdClaim);
+            var poi = await _context.POIs.FirstOrDefaultAsync(p => p.Id == id && p.UserId == vendorId);
+            if (poi == null) return NotFound(new { message = "Không tìm thấy địa điểm hoặc không có quyền." });
+
+            poi.Name = updatedPOI.Name;
+            poi.Description = updatedPOI.Description;
+            poi.Lat = updatedPOI.Lat;
+            poi.Lng = updatedPOI.Lng;
+            poi.Radius = 10;
+            poi.Priority = 1;
+            poi.ApprovalStatus = 0; 
+
+            await _context.SaveChangesAsync();
+            return Ok(new { message = "Cập nhật thành công. Đang chờ Admin duyệt lại." });
         }
 
         [HttpPost]
         [Authorize]
         public async Task<IActionResult> PostPOI([FromBody] POI pOI)
         {
-            if (User.IsInRole("Vendor"))
+            if (User.IsInRole("Vendor") || User.HasClaim("role", "Vendor"))
             {
-                var vendorId = int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value);
+                var vendorIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? User.FindFirst("sub")?.Value;
+                var vendorId = int.Parse(vendorIdClaim);
                 var vendorInfo = await _context.Users.FindAsync(vendorId);
                 var currentPoiCount = await _context.POIs.CountAsync(p => p.UserId == vendorId);
 
@@ -67,6 +92,8 @@ namespace Nhom1.Controllers
 
                 pOI.UserId = vendorId;
                 pOI.ApprovalStatus = 0; 
+                pOI.Radius = 10;
+                pOI.Priority = 1;
             }
             else { pOI.ApprovalStatus = 1; }
 
@@ -76,15 +103,18 @@ namespace Nhom1.Controllers
         }
 
         [HttpGet("{id}")]
+        [Authorize] // ĐÃ SỬA: Đóng bảo mật nghiêm ngặt để lấy danh tính thiết bị
         public async Task<IActionResult> GetPOI(int id)
         {
-            var pOI = await _context.POIs
-                .Include(p => p.Audios)
-                .FirstOrDefaultAsync(p => p.Id == id && p.ApprovalStatus == 1);
-                
+            var pOI = await _context.POIs.Include(p => p.Audios).FirstOrDefaultAsync(p => p.Id == id && p.ApprovalStatus == 1);
             if (pOI == null) return NotFound(new { message = "Địa điểm không tồn tại hoặc chưa được kiểm duyệt." });
 
-            var log = new TrackingLog { POI_Id = id, EventType = "SCAN_QR", Timestamp = DateTime.UtcNow };
+            // FIX: Bắt chéo từ khóa thiết bị chặn đứng lỗi đếm trùng lặp danh tính số số 1
+            var sessionToken = User.FindFirst(ClaimTypes.NameIdentifier)?.Value 
+                               ?? User.FindFirst("sub")?.Value 
+                               ?? "Anon_QR_" + Guid.NewGuid().ToString().Substring(0,4);
+
+            var log = new TrackingLog { POI_Id = id, EventType = "SCAN_QR", Timestamp = DateTime.UtcNow, SessionToken = sessionToken };
             _context.TrackingLogs.Add(log);
             await _context.SaveChangesAsync();
 
@@ -95,60 +125,10 @@ namespace Nhom1.Controllers
             var poiDto = new {
                 id = pOI.Id, name = pOI.Name, lat = pOI.Lat, lng = pOI.Lng, radius = pOI.Radius,
                 listenCount = totalListens, ratingAvg = averageRating, ratingTotalCount = reviews.Count,
-                // ĐÓNG GÓI ĐA NGÔN NGỮ
-                descriptions = new {
-                    vi = pOI.Description,
-                    en = pOI.DescriptionEn,
-                    zh = pOI.DescriptionZh,
-                    ko = pOI.DescriptionKo,
-                    ja = pOI.DescriptionJa
-                },
+                descriptions = new { vi = pOI.Description, en = pOI.DescriptionEn, zh = pOI.DescriptionZh, ko = pOI.DescriptionKo, ja = pOI.DescriptionJa },
                 audios = pOI.Audios.Select(a => new { id = a.Id, filePath = a.FilePath, language = a.Language, isPremium = a.IsPremium }).ToList()
             };
-
             return Ok(poiDto);
         }
-
-        [HttpDelete("{id}")]
-        [Authorize(Roles = "Admin,Vendor")]
-        public async Task<IActionResult> DeletePOI(int id)
-        {
-            var pOI = await _context.POIs.FindAsync(id);
-            if (pOI == null) return NotFound();
-            if (User.IsInRole("Vendor"))
-            {
-                var vendorId = int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value);
-                if (pOI.UserId != vendorId) return Forbid();
-            }
-            _context.POIs.Remove(pOI);
-            await _context.SaveChangesAsync();
-            return NoContent();
-        }
-
-        [HttpPut("{id}/assign")]
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> AssignVendor(int id, [FromBody] AssignVendorDto request)
-        {
-            var poi = await _context.POIs.FindAsync(id);
-            if (poi == null) return NotFound(new { message = "Không tìm thấy địa điểm." });
-            var vendor = await _context.Users.FirstOrDefaultAsync(u => u.Username == request.VendorUsername && u.Role == "Vendor");
-            if (vendor == null) return NotFound(new { message = "Không tìm thấy tài khoản." });
-            poi.UserId = vendor.Id;
-            await _context.SaveChangesAsync();
-            return Ok(new { message = $"Thành công! Đã gán địa điểm '{poi.Name}' cho tài khoản '{vendor.Username}'." });
-        }
-
-        [HttpPut("{id}/approve")]
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> ApprovePOI(int id, [FromBody] ApproveStatusDto request)
-        {
-            var poi = await _context.POIs.FindAsync(id);
-            if (poi == null) return NotFound();
-            poi.ApprovalStatus = request.Status;
-            await _context.SaveChangesAsync();
-            return Ok(new { message = "Cập nhật thành công." });
-        }
     }
-    public class AssignVendorDto { public string VendorUsername { get; set; } }
-    public class ApproveStatusDto { public int Status { get; set; } }
 }

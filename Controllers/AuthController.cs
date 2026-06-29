@@ -5,6 +5,8 @@ using Nhom1.Models;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using System;
+using System.Linq;
 
 namespace Nhom1.Controllers
 {
@@ -21,12 +23,11 @@ namespace Nhom1.Controllers
         public IActionResult Login([FromBody] LoginRequest request)
         {
             var user = _context.Users.FirstOrDefault(u => u.Username == request.Username && u.PasswordHash == request.Password);
-            if (user == null || !user.IsActive) return Unauthorized("Sai tài khoản hoặc tài khoản bị khóa.");
+            if (user == null || !user.IsActive) return Unauthorized(new { message = "Sai tài khoản hoặc tài khoản bị khóa." });
             var token = GenerateJwtToken(user.Id.ToString(), user.Role, DateTime.UtcNow.AddDays(30));
             return Ok(new { Token = token, Role = user.Role, ShopName = user.ShopName });
         }
 
-        // GÓI FREE: Cấp Role "GuestFree"
         [HttpPost("guest-free")]
         public IActionResult GetGuestFreeToken()
         {
@@ -35,7 +36,6 @@ namespace Nhom1.Controllers
             return Ok(new { Token = token, SessionId = sessionId, Role = "GuestFree", Message = "Kích hoạt gói Thường thành công." });
         }
 
-        // GÓI PREMIUM: Cấp Role "GuestPremium", sống đúng 24h
         [HttpPost("guest-premium")]
         public IActionResult GetGuestPremiumToken()
         {
@@ -49,7 +49,13 @@ namespace Nhom1.Controllers
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.ASCII.GetBytes(_secretKey);
             var tokenDescriptor = new SecurityTokenDescriptor {
-                Subject = new ClaimsIdentity(new[] { new Claim(ClaimTypes.NameIdentifier, userId), new Claim("role", role) }),
+                // ĐÃ SỬA: Ép cứng cả Claim chuẩn hóa và Claim thô để chống lỗi nuốt dữ liệu ID
+                Subject = new ClaimsIdentity(new[] { 
+                    new Claim(ClaimTypes.NameIdentifier, userId), 
+                    new Claim(ClaimTypes.Role, role),
+                    new Claim("role", role),
+                    new Claim("sub", userId) 
+                }),
                 Expires = expires,
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
             };
@@ -57,5 +63,11 @@ namespace Nhom1.Controllers
             return tokenHandler.WriteToken(token);
         }
     }
-    public class LoginRequest { public string Username { get; set; } public string Password { get; set; } }
+
+    // ĐÃ BỔ SUNG: Lớp trung gian DTO để nhận dữ liệu đăng nhập
+    public class LoginRequest 
+    { 
+        public string Username { get; set; } 
+        public string Password { get; set; } 
+    }
 }

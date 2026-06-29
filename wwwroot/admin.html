@@ -62,26 +62,135 @@
     </nav>
 
     <div class="container-fluid px-4">
-      <div class="row mb-4">
-        <div class="col-md-3">
-          <div class="card bg-primary text-white shadow-sm h-100">
-            <div
-              class="card-body text-center flex flex-col justify-content-center"
+      <!-- 5 KHỐI SUMMARY CARDS -->
+      <div class="row mb-3 g-2">
+        <div class="col">
+          <div
+            class="card bg-primary text-white shadow-sm h-100 text-center p-3"
+          >
+            <h6
+              class="text-uppercase fw-bold opacity-75"
+              style="font-size: 11px"
             >
-              <h6 class="text-uppercase fw-bold opacity-75">
-                Du khách Online (30p qua)
-              </h6>
-              <h2 class="display-4 fw-bold mb-0" id="dash-online">0</h2>
+              Du khách Online (5p)
+            </h6>
+            <h3 class="fw-bold mb-0" id="dash-online">0</h3>
+          </div>
+        </div>
+        <div class="col">
+          <div
+            class="card bg-success text-white shadow-sm h-100 text-center p-3"
+          >
+            <h6
+              class="text-uppercase fw-bold opacity-75"
+              style="font-size: 11px"
+            >
+              Tổng Địa Điểm
+            </h6>
+            <h3 class="fw-bold mb-0" id="dash-pois">0</h3>
+          </div>
+        </div>
+        <div class="col">
+          <div
+            class="card bg-warning text-dark shadow-sm h-100 text-center p-3"
+          >
+            <h6
+              class="text-uppercase fw-bold opacity-75"
+              style="font-size: 11px"
+            >
+              Đang Chờ Duyệt
+            </h6>
+            <h3 class="fw-bold mb-0" id="dash-pending">0</h3>
+          </div>
+        </div>
+        <div class="col">
+          <div class="card bg-info text-dark shadow-sm h-100 text-center p-3">
+            <h6
+              class="text-uppercase fw-bold opacity-75"
+              style="font-size: 11px"
+            >
+              Tổng Đánh Giá
+            </h6>
+            <h3 class="fw-bold mb-0" id="dash-reviews">0</h3>
+          </div>
+        </div>
+        <div class="col">
+          <div
+            class="card bg-secondary text-white shadow-sm h-100 text-center p-3"
+          >
+            <h6
+              class="text-uppercase fw-bold opacity-75"
+              style="font-size: 11px"
+            >
+              Tổng Lượt Quét/Nghe
+            </h6>
+            <h3 class="fw-bold mb-0" id="dash-scans">0</h3>
+          </div>
+        </div>
+      </div>
+
+      <!-- ĐỊA ĐIỂM HOT NHẤT -->
+      <div class="row mb-4">
+        <div class="col-12">
+          <div class="card border-danger shadow-sm">
+            <div
+              class="card-body bg-danger text-white rounded d-flex justify-content-between align-items-center p-3"
+            >
+              <div>
+                <h6
+                  class="fw-bold mb-1 opacity-75 text-uppercase"
+                  style="font-size: 12px"
+                >
+                  🔥 Địa điểm Hot nhất hệ thống
+                </h6>
+                <span id="hot-poi-name" class="fs-5 fw-bold">Đang tải...</span>
+              </div>
+              <div class="text-end">
+                <span class="badge bg-light text-danger fs-6" id="hot-poi-stats"
+                  >0 Lượt nghe | 0⭐</span
+                >
+              </div>
             </div>
           </div>
         </div>
-        <div class="col-md-9">
+      </div>
+
+      <!-- BIỂU ĐỒ LƯU LƯỢNG (3 TRONG 1) -->
+      <div class="row mb-4">
+        <div class="col-12">
           <div class="card shadow-sm h-100">
             <div class="card-body">
-              <h6 class="fw-bold text-secondary mb-3">
-                Lưu lượng truy cập theo khung giờ
-              </h6>
-              <div style="height: 200px">
+              <div
+                class="d-flex justify-content-between align-items-center mb-3"
+              >
+                <h6 class="fw-bold text-secondary mb-0">
+                  Lưu lượng truy cập hệ thống
+                </h6>
+                <div class="btn-group btn-group-sm">
+                  <button
+                    class="btn btn-outline-primary btn-chart active"
+                    onclick="loadChart('hour')"
+                    id="btn-chart-hour"
+                  >
+                    Hôm nay
+                  </button>
+                  <button
+                    class="btn btn-outline-primary btn-chart"
+                    onclick="loadChart('day')"
+                    id="btn-chart-day"
+                  >
+                    Tháng này
+                  </button>
+                  <button
+                    class="btn btn-outline-primary btn-chart"
+                    onclick="loadChart('month')"
+                    id="btn-chart-month"
+                  >
+                    Năm nay
+                  </button>
+                </div>
+              </div>
+              <div style="height: 250px">
                 <canvas id="hourlyChart"></canvas>
               </div>
             </div>
@@ -90,29 +199,19 @@
       </div>
 
       <div class="row mb-4">
-        <div class="col-12">
-          <div class="card border-warning shadow-sm">
+        <!-- VÙNG TẠO TÀI KHOẢN VÀ BÀN GIAO BÊN TRÁI -->
+        <div class="col-md-4">
+          <div class="card border-warning shadow-sm mb-4">
             <div class="card-header bg-warning text-dark fw-bold">
               ⚠️ Yêu cầu Cần Duyệt (Từ Vendor)
             </div>
             <div class="card-body p-0">
               <table class="table table-hover m-0 text-sm">
-                <thead>
-                  <tr>
-                    <th>Tên địa điểm</th>
-                    <th>Tọa độ</th>
-                    <th>Hành động</th>
-                  </tr>
-                </thead>
                 <tbody id="pendingTableBody"></tbody>
               </table>
             </div>
           </div>
-        </div>
-      </div>
 
-      <div class="row mb-4">
-        <div class="col-md-4">
           <div class="card p-3 mb-4 shadow-sm">
             <h6 class="text-success fw-bold border-bottom pb-2">
               Khởi tạo Vendor
@@ -144,6 +243,7 @@
               </button>
             </form>
           </div>
+
           <div class="card p-3 shadow-sm">
             <h6 class="text-primary fw-bold border-bottom pb-2">
               Bàn giao quyền sở hữu
@@ -177,6 +277,7 @@
           </div>
         </div>
 
+        <!-- VÙNG QUẢN LÝ POI VÀ BÌNH LUẬN BÊN PHẢI -->
         <div class="col-md-8">
           <ul class="nav nav-tabs mb-3" id="adminTabs">
             <li class="nav-item">
@@ -202,6 +303,16 @@
           <div class="tab-content">
             <div class="tab-pane fade show active" id="activePoiTab">
               <div class="card p-0 shadow-sm border-0">
+                <!-- TÍNH NĂNG TÌM KIẾM POI -->
+                <div class="card-header bg-white p-3 border-bottom-0">
+                  <input
+                    type="text"
+                    id="searchPoiAdmin"
+                    onkeyup="searchAdminPois()"
+                    class="form-control form-control-sm border-primary"
+                    placeholder="🔍 Tìm kiếm tên địa điểm..."
+                  />
+                </div>
                 <div class="table-responsive">
                   <table class="table table-hover align-middle text-sm m-0">
                     <thead class="table-light">
@@ -244,8 +355,8 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
       let myChartInstance = null;
+      let globalActivePois = []; // Lưu mảng tạm để tính năng Search hoạt động
 
-      // --- BỘ LỌC QUYỀN NGHIÊM NGẶT ---
       function parseJwt(token) {
         try {
           return JSON.parse(atob(token.split(".")[1]));
@@ -260,7 +371,6 @@
           document.getElementById("login-overlay").style.display = "flex";
         } else {
           const payload = parseJwt(token);
-          // Nếu Vendor đi lạc vào trang Admin -> Đá về Vendor
           if (payload && payload.role === "Vendor") {
             window.location.href = "vendor.html";
           } else {
@@ -280,7 +390,7 @@
           }),
         })
           .then((res) => {
-            if (!res.ok) throw new Error("Sai tài khoản hoặc mật khẩu");
+            if (!res.ok) throw new Error("Sai tài khoản/mật khẩu");
             return res.json();
           })
           .then((data) => {
@@ -294,7 +404,6 @@
           .catch((err) => alert(err.message));
       }
 
-      // Kích hoạt bộ lọc ngay khi load web
       window.addEventListener("DOMContentLoaded", checkAuth);
 
       function logout() {
@@ -303,54 +412,85 @@
       }
 
       function loadAdminData() {
-        loadDashboard();
+        loadKPISummary();
+        loadChart("hour");
         loadPOIs();
         loadReviews();
       }
 
-      function loadDashboard() {
-        fetch("/api/Analytics/online", {
-          headers: {
-            Authorization: "Bearer " + sessionStorage.getItem("adminToken"),
-          },
-        })
-          .then((r) => r.json())
-          .then(
-            (data) =>
-              (document.getElementById("dash-online").innerText =
-                data.onlineUsers),
-          );
-
-        fetch("/api/Analytics/chart", {
+      function loadKPISummary() {
+        fetch("/api/Analytics/kpi-summary", {
           headers: {
             Authorization: "Bearer " + sessionStorage.getItem("adminToken"),
           },
         })
           .then((r) => r.json())
           .then((data) => {
-            const labels = data.map((d) => d.hour);
+            document.getElementById("dash-online").innerText = data.onlineUsers;
+            document.getElementById("dash-pois").innerText =
+              data.totalActivePOIs;
+            document.getElementById("dash-pending").innerText =
+              data.pendingPOIs;
+            document.getElementById("dash-reviews").innerText =
+              data.totalReviews;
+            document.getElementById("dash-scans").innerText = data.totalScans;
+
+            if (data.hottestPOI) {
+              document.getElementById("hot-poi-name").innerText =
+                data.hottestPOI.name;
+              document.getElementById("hot-poi-stats").innerText =
+                `${data.hottestPOI.scans} Quét | ${data.hottestPOI.rating}⭐ (${data.hottestPOI.reviews} BL)`;
+            } else {
+              document.getElementById("hot-poi-name").innerText =
+                "Chưa có dữ liệu";
+            }
+          });
+      }
+
+      function loadChart(type) {
+        document
+          .querySelectorAll(".btn-chart")
+          .forEach((btn) => btn.classList.remove("active"));
+        document.getElementById("btn-chart-" + type).classList.add("active");
+
+        fetch("/api/Analytics/chart?type=" + type, {
+          headers: {
+            Authorization: "Bearer " + sessionStorage.getItem("adminToken"),
+          },
+        })
+          .then((r) => r.json())
+          .then((data) => {
+            const labels = data.map((d) => d.label);
             const counts = data.map((d) => d.count);
             const ctx = document.getElementById("hourlyChart").getContext("2d");
+
             if (myChartInstance) myChartInstance.destroy();
+
+            // CHUYỂN ĐỔI SANG BIỂU ĐỒ CỘT (BAR CHART) VÀ TỐI ƯU MÀU SẮC ĐỔ BÓNG
             myChartInstance = new Chart(ctx, {
-              type: "line",
+              type: "bar",
               data: {
                 labels: labels,
                 datasets: [
                   {
-                    label: "Lượt quét",
+                    label: "Lượt tương tác hệ thống",
                     data: counts,
                     borderColor: "#0d6efd",
-                    backgroundColor: "rgba(13, 110, 253, 0.2)",
-                    fill: true,
-                    tension: 0.3,
+                    backgroundColor: "rgba(13, 110, 253, 0.75)", // Tăng độ đậm đặc của cột
+                    borderWidth: 1,
+                    barPercentage: 0.6, // Khoảng cách tối ưu giữa các cột để nhìn thông thoáng
                   },
                 ],
               },
               options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } },
+                scales: {
+                  y: {
+                    beginAtZero: true,
+                    ticks: { stepSize: 1 },
+                  },
+                },
               },
             });
           });
@@ -365,26 +505,49 @@
           .then((r) => r.json())
           .then((data) => {
             const pending = document.getElementById("pendingTableBody");
-            const active = document.getElementById("poiTableBody");
             pending.innerHTML = "";
-            active.innerHTML = "";
+            globalActivePois = [];
+
             data.forEach((poi) => {
               if (poi.approvalStatus === 0) {
-                pending.innerHTML += `<tr><td><strong>${poi.name}</strong></td><td>${poi.lat}, ${poi.lng}</td><td><button onclick="reviewPOI(${poi.id}, 1)" class="btn btn-success btn-sm me-1">Duyệt</button><button onclick="reviewPOI(${poi.id}, -1)" class="btn btn-danger btn-sm">Từ chối</button></td></tr>`;
+                pending.innerHTML += `<tr><td><strong>${poi.name}</strong></td><td><button onclick="reviewPOI(${poi.id}, 1)" class="btn btn-success btn-sm me-1">Duyệt</button><button onclick="reviewPOI(${poi.id}, -1)" class="btn btn-danger btn-sm">Từ chối</button></td></tr>`;
               } else if (poi.approvalStatus === 1) {
-                let audioList = poi.audios
-                  .map(
-                    (a) =>
-                      `<span class="badge bg-${a.isPremium ? "warning text-dark" : "primary"}">${a.language} ${a.isPremium ? "⭐" : ""}</span>`,
-                  )
-                  .join(" ");
-                active.innerHTML += `<tr><td>${poi.id}</td><td><strong>${poi.name}</strong></td><td><span class="badge bg-info text-dark">${poi.listenCount}</span></td><td>${audioList || '<small class="text-muted">Trống</small>'}</td><td><button onclick="deletePOI(${poi.id})" class="btn btn-sm btn-outline-danger">Xóa</button></td></tr>`;
+                globalActivePois.push(poi);
               }
             });
             if (pending.innerHTML === "")
               pending.innerHTML =
-                "<tr><td colspan='3' class='text-center text-muted'>Không có yêu cầu nào.</td></tr>";
+                "<tr><td colspan='2' class='text-center text-muted'>Trống.</td></tr>";
+
+            renderActivePoisTable(globalActivePois);
           });
+      }
+
+      function searchAdminPois() {
+        const term = document
+          .getElementById("searchPoiAdmin")
+          .value.toLowerCase();
+        const filtered = globalActivePois.filter((p) =>
+          p.name.toLowerCase().includes(term),
+        );
+        renderActivePoisTable(filtered);
+      }
+
+      function renderActivePoisTable(list) {
+        const active = document.getElementById("poiTableBody");
+        active.innerHTML = "";
+        list.forEach((poi) => {
+          let audioList = (poi.audios || [])
+            .map(
+              (a) =>
+                `<span class="badge bg-${a.isPremium ? "warning text-dark" : "primary"}">${a.language}</span>`,
+            )
+            .join(" ");
+          active.innerHTML += `<tr><td>${poi.id}</td><td><strong>${poi.name}</strong></td><td><span class="badge bg-info text-dark">${poi.listenCount}</span></td><td>${audioList || '<small class="text-muted">Trống</small>'}</td><td><button onclick="deletePOI(${poi.id})" class="btn btn-sm btn-outline-danger">Xóa</button></td></tr>`;
+        });
+        if (list.length === 0)
+          active.innerHTML =
+            "<tr><td colspan='5' class='text-center text-muted'>Không tìm thấy.</td></tr>";
       }
 
       function loadReviews() {
@@ -398,11 +561,11 @@
             const tbody = document.getElementById("reviewsTableBody");
             tbody.innerHTML =
               data.length === 0
-                ? "<tr><td colspan='4' class='text-center'>Không có bình luận.</td></tr>"
+                ? "<tr><td colspan='4' class='text-center'>Không có.</td></tr>"
                 : data
                     .map(
                       (r) =>
-                        `<tr><td><strong>${r.poiName}</strong></td><td class="text-warning">${"⭐".repeat(r.rating)}</td><td>${r.comment || '<i class="text-muted">Không có bình luận</i>'}</td><td>${new Date(r.createdAt).toLocaleString("vi-VN")}</td></tr>`,
+                        `<tr><td><strong>${r.poiName}</strong></td><td class="text-warning">${"⭐".repeat(r.rating)}</td><td>${r.comment || '<i class="text-muted">Không bình luận</i>'}</td><td>${new Date(r.createdAt).toLocaleString("vi-VN")}</td></tr>`,
                     )
                     .join("");
           });
@@ -417,9 +580,13 @@
           },
           body: JSON.stringify({ Status: status }),
         }).then((res) => {
-          if (res.ok) loadPOIs();
+          if (res.ok) {
+            loadPOIs();
+            loadKPISummary();
+          }
         });
       }
+
       function deletePOI(id) {
         if (confirm("Xóa địa điểm này?"))
           fetch(`/api/POI/${id}`, {
@@ -428,7 +595,10 @@
               Authorization: "Bearer " + sessionStorage.getItem("adminToken"),
             },
           }).then((res) => {
-            if (res.ok) loadPOIs();
+            if (res.ok) {
+              loadPOIs();
+              loadKPISummary();
+            }
           });
       }
 
@@ -445,13 +615,27 @@
             body: JSON.stringify({
               Username: document.getElementById("newVendorUser").value,
               PasswordHash: document.getElementById("newVendorPass").value,
-              ShopName: "", // Gửi rỗng để Backend tự gán mặc định
+              ShopName: "",
             }),
-          }).then(async (r) => {
-            alert(r.ok ? "Thành công" : "Lỗi: " + (await r.json()).message);
-            if (r.ok) e.target.reset();
+          }).then(async (res) => {
+            const data = await res.json();
+            if (res.ok) {
+              alert(data.message || "Khởi tạo thành công!");
+              e.target.reset();
+            } else {
+              // Thuật toán quét và trích xuất lỗi (Kể cả lỗi tự động của hệ thống)
+              let errorMsg = data.message;
+              if (!errorMsg && data.errors) {
+                errorMsg = Object.values(data.errors).flat().join("\n");
+              }
+              alert(
+                "Lỗi: " +
+                  (errorMsg || "Không thể tạo tài khoản. Vui lòng thử lại."),
+              );
+            }
           });
         });
+
       document.getElementById("assignForm").addEventListener("submit", (e) => {
         e.preventDefault();
         fetch(
@@ -466,9 +650,10 @@
               VendorUsername: document.getElementById("assignVendor").value,
             }),
           },
-        ).then(async (r) => {
-          alert(r.ok ? "Thành công" : "Lỗi: " + (await r.json()).message);
-          if (r.ok) {
+        ).then(async (res) => {
+          const data = await res.json();
+          alert(res.ok ? data.message : "Lỗi: " + data.message);
+          if (res.ok) {
             e.target.reset();
             loadPOIs();
           }
