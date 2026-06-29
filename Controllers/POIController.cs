@@ -148,28 +148,28 @@ namespace Nhom1.Controllers
             return NoContent();
         }
 
-        [HttpPut("{id}/assign")]
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> AssignVendor(int id, [FromBody] AssignVendorDto request)
-        {
-            var poi = await _context.POIs.FindAsync(id);
-            if (poi == null) return NotFound(new { message = "Không tìm thấy địa điểm." });
-            var vendor = await _context.Users.FirstOrDefaultAsync(u => u.Username == request.VendorUsername && u.Role == "Vendor");
-            if (vendor == null) return NotFound(new { message = "Không tìm thấy tài khoản." });
-            poi.UserId = vendor.Id;
-            await _context.SaveChangesAsync();
-            return Ok(new { message = $"Thành công! Đã gán địa điểm '{poi.Name}' cho tài khoản '{vendor.Username}'." });
-        }
+        // [HttpPut("{id}/assign")]
+        // [Authorize(Roles = "Admin")]
+        // public async Task<IActionResult> AssignVendor(int id, [FromBody] AssignVendorDto request)
+        // {
+        //     var poi = await _context.POIs.FindAsync(id);
+        //     if (poi == null) return NotFound(new { message = "Không tìm thấy địa điểm." });
+        //     var vendor = await _context.Users.FirstOrDefaultAsync(u => u.Username == request.VendorUsername && u.Role == "Vendor");
+        //     if (vendor == null) return NotFound(new { message = "Không tìm thấy tài khoản." });
+        //     poi.UserId = vendor.Id;
+        //     await _context.SaveChangesAsync();
+        //     return Ok(new { message = $"Thành công! Đã gán địa điểm '{poi.Name}' cho tài khoản '{vendor.Username}'." });
+        // }
 
-        [HttpPut("{id}/approve")]
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> ApprovePOI(int id, [FromBody] ApproveStatusDto request)
-        {
-            var poi = await _context.POIs.FindAsync(id);
-            if (poi == null) return NotFound();
-            poi.ApprovalStatus = request.Status;
-            await _context.SaveChangesAsync();
-            return Ok(new { message = "Cập nhật thành công." });
-        }
+        // [HttpPut("{id}/approve")]
+        // [Authorize(Roles = "Admin")]
+        // public async Task<IActionResult> ApprovePOI(int id, [FromBody] ApproveStatusDto request)
+        // {
+        //     var poi = await _context.POIs.FindAsync(id);
+        //     if (poi == null) return NotFound();
+        //     poi.ApprovalStatus = request.Status;
+        //     await _context.SaveChangesAsync();
+        //     return Ok(new { message = "Cập nhật thành công." });
+        // }
     }
 }
