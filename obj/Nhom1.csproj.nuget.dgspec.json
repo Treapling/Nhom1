@@ -1,20 +1,20 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Nhom1 - new - Final\\Nhom1\\Nhom1.csproj": {}
+    "C:\\Users\\Gia Bao\\Documents\\C#\\Project\\Nhom1\\Nhom1.csproj": {}
   },
   "projects": {
-    "C:\\Nhom1 - new - Final\\Nhom1\\Nhom1.csproj": {
+    "C:\\Users\\Gia Bao\\Documents\\C#\\Project\\Nhom1\\Nhom1.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Nhom1 - new - Final\\Nhom1\\Nhom1.csproj",
+        "projectUniqueName": "C:\\Users\\Gia Bao\\Documents\\C#\\Project\\Nhom1\\Nhom1.csproj",
         "projectName": "Nhom1",
-        "projectPath": "C:\\Nhom1 - new - Final\\Nhom1\\Nhom1.csproj",
-        "packagesPath": "C:\\Users\\ADMIN\\.nuget\\packages\\",
-        "outputPath": "C:\\Nhom1 - new - Final\\Nhom1\\obj\\",
+        "projectPath": "C:\\Users\\Gia Bao\\Documents\\C#\\Project\\Nhom1\\Nhom1.csproj",
+        "packagesPath": "C:\\Users\\Gia Bao\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\Gia Bao\\Documents\\C#\\Project\\Nhom1\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\ADMIN\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\Gia Bao\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
