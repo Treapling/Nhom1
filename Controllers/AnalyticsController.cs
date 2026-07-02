@@ -42,11 +42,11 @@ namespace Nhom1.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetKPISummary()
         {
-            var fiveMinsAgo = DateTime.UtcNow.AddMinutes(-5);
-
-            // Đếm số user online: đếm SessionToken duy nhất trong 5 phút gần đây
+            var thirtySecsAgo = DateTime.UtcNow.AddSeconds(-30);
+            
+            // ĐẾM ONLINE CHUẨN XÁC: Nhờ SessionToken đã được lưu vết đầy đủ từ thiết bị
             var onlineUsers = await _context.TrackingLogs
-                .Where(t => t.Timestamp >= fiveMinsAgo && t.SessionToken != null)
+                .Where(t => t.Timestamp >= thirtySecsAgo && t.SessionToken != null)
                 .Select(t => t.SessionToken)
                 .Distinct()
                 .CountAsync();
