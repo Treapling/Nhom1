@@ -6,6 +6,10 @@ using Nhom1.Models;
 
 namespace Nhom1.Controllers
 {
+    /// <summary>
+    /// [CONTROLLER] Đánh giá & Bình luận (Review) - Xử lý đánh giá sao và bình luận cho địa điểm
+    /// Phân quyền: GuestFree chỉ được đánh giá sao (không comment), GuestPremium có thể xem bình luận
+    /// </summary>
     [Route("api/[controller]")]
     [ApiController]
     public class ReviewController : ControllerBase
@@ -13,20 +17,28 @@ namespace Nhom1.Controllers
         private readonly AppDbContext _context;
         public ReviewController(AppDbContext context) { _context = context; }
 
-        // 1. GỬI ĐÁNH GIÁ (Free & Premium)
+        /// <summary>
+        /// [POST /api/review] - [GuestFree/GuestPremium] Gửi đánh giá cho địa điểm
+        /// - GuestFree: chỉ được gửi Rating, Comment bị xóa (set null) 
+        /// - GuestPremium: được gửi cả Rating và Comment
+        /// </summary>
         [HttpPost]
         [Authorize(Roles = "GuestFree,GuestPremium")]
         public IActionResult PostReview([FromBody] Review review)
         {
-            // Ép luật: Nếu là Free, xóa Comment trắng trơn, chỉ giữ Rating
+            // Nếu là GuestFree, xóa comment để chặn việc gửi bình luận
             if (User.IsInRole("GuestFree")) { review.Comment = null; }
-            
+
             _context.Reviews.Add(review);
             _context.SaveChanges();
             return Ok(new { message = "Cảm ơn bạn đã đánh giá!" });
         }
 
-        // 2. LẤY BÌNH LUẬN CHO KHÁCH PREMIUM XEM TRONG APP
+        /// <summary>
+        /// [GET /api/review/poi/{poiId}] - [GuestPremium] Lấy bình luận của địa điểm
+        /// Chỉ GuestPremium mới được xem nội dung bình luận
+        /// Trả về: rating, comment, thời gian tạo (sắp xếp mới nhất trước)
+        /// </summary>
         [HttpGet("poi/{poiId}")]
         [Authorize(Roles = "GuestPremium")]
         public async Task<IActionResult> GetReviewsForPremium(int poiId)
@@ -39,14 +51,19 @@ namespace Nhom1.Controllers
             return Ok(reviews);
         }
 
-        // 3. ADMIN & VENDOR QUẢN LÝ BÌNH LUẬN TOÀN HỆ THỐNG
+        /// <summary>
+        /// [GET /api/review/manage] - [Admin/Vendor] Quản lý tất cả đánh giá
+        /// - Admin: xem tất cả đánh giá trong hệ thống
+        /// - Vendor: chỉ xem đánh giá của các POI thuộc quyền quản lý của mình
+        /// Trả về: id, rating, comment, thời gian, tên POI
+        /// </summary>
         [HttpGet("manage")]
         [Authorize(Roles = "Admin,Vendor")]
         public async Task<IActionResult> GetAllReviews()
         {
             var query = _context.Reviews.Include(r => r.POI).AsQueryable();
 
-            // Nếu là Vendor, lọc chỉ lấy bình luận của quán họ
+            // Nếu là Vendor, lọc chỉ lấy review của quán họ
             if (User.IsInRole("Vendor"))
             {
                 var vendorId = int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value);
